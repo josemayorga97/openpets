@@ -1,0 +1,26 @@
+{
+  "name": "openpets-repo",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev:admin-application": "pnpm --filter admin-application run dev",
+    "dev:shelter-application": "pnpm --filter shelter-application run dev",
+    "dev:user-application": "pnpm --filter user-application run dev",
+    "dev:api-service": "pnpm --filter api-service run dev",
+    "deploy-admin-application:stage": "pnpm i && pnpm --filter admin-application run deploy:stage",
+    "deploy-shelter-application:stage": "pnpm i && pnpm --filter shelter-application run deploy:stage",
+    "deploy-user-application:stage": "pnpm i && pnpm --filter user-application run deploy:stage",
+    "deploy-api-service:stage": "pnpm i && pnpm --filter api-service run deploy:stage",
+    "deploy-admin-application:prod": "pnpm i && pnpm --filter admin-application run deploy:prod",
+    "deploy-shelter-application:prod": "pnpm i && pnpm --filter shelter-application run deploy:prod",
+    "deploy-user-application:prod": "pnpm i && pnpm --filter user-application run deploy:prod",
+    "deploy-api-service:prod": "pnpm i && pnpm --filter api-service run deploy:prod"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^25.8.0",
+    "typescript": "^6.0.3"
+  }
+}
