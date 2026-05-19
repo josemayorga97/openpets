@@ -14,9 +14,27 @@
 		"enabled": true,
 	},
 	"env": {
-		"stage": {		
+		"stage": {	
+			"d1_databases": [{
+				"binding": "DB",
+				"database_id": "455b8e03-a795-470e-b26a-16f012deab54",
+				"remote": true
+			}],
+			"r2_buckets": [{
+				"binding": "OPEN_PETS_STORAGE",
+				"bucket_name": "open-pets-stage",
+				"remote": true
+			}]	
 		},
-		"prod": {
+		"prod": {	
+			"d1_databases": [{
+				"binding": "DB",
+				"database_id": "8c29b8ef-ef3f-49b3-ba3e-eac069cd7218",
+			}],
+			"r2_buckets": [{
+				"binding": "OPEN_PETS_STORAGE",
+				"bucket_name": "open-pets-prod",
+			}]	
 		}
 	}
 }

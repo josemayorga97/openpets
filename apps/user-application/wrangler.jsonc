@@ -17,6 +17,25 @@
 	"assets": {
 		"binding": "ASSETS",
 		"not_found_handling": "single-page-application"
+	},
+	"env": {
+		"stage": {
+			"services": [
+				{
+					"binding": "API_SERVICE",
+					"service": "api-service-stage",
+					"remote": true
+				}
+			]
+		},
+		"prod": {
+			"services": [
+				{
+					"binding": "API_SERVICE",
+					"service": "api-service-prod",
+				}
+			]
+		}
 	}
 	
 }
