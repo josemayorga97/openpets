@@ -9,50 +9,172 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as PublicRouteImport } from './routes/_public'
+import { Route as PublicIndexRouteImport } from './routes/_public/index'
+import { Route as PublicSearchRouteImport } from './routes/_public/search'
+import { Route as PublicResourcesRouteImport } from './routes/_public/resources'
+import { Route as PublicQuizRouteImport } from './routes/_public/quiz'
+import { Route as PublicAboutRouteImport } from './routes/_public/about'
+import { Route as PublicPetsIdRouteImport } from './routes/_public/pets.$id'
 
-const IndexRoute = IndexRouteImport.update({
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicIndexRoute = PublicIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicSearchRoute = PublicSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicResourcesRoute = PublicResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicQuizRoute = PublicQuizRouteImport.update({
+  id: '/quiz',
+  path: '/quiz',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicAboutRoute = PublicAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicPetsIdRoute = PublicPetsIdRouteImport.update({
+  id: '/pets/$id',
+  path: '/pets/$id',
+  getParentRoute: () => PublicRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof PublicIndexRoute
+  '/about': typeof PublicAboutRoute
+  '/quiz': typeof PublicQuizRoute
+  '/resources': typeof PublicResourcesRoute
+  '/search': typeof PublicSearchRoute
+  '/pets/$id': typeof PublicPetsIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/about': typeof PublicAboutRoute
+  '/quiz': typeof PublicQuizRoute
+  '/resources': typeof PublicResourcesRoute
+  '/search': typeof PublicSearchRoute
+  '/': typeof PublicIndexRoute
+  '/pets/$id': typeof PublicPetsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_public': typeof PublicRouteWithChildren
+  '/_public/about': typeof PublicAboutRoute
+  '/_public/quiz': typeof PublicQuizRoute
+  '/_public/resources': typeof PublicResourcesRoute
+  '/_public/search': typeof PublicSearchRoute
+  '/_public/': typeof PublicIndexRoute
+  '/_public/pets/$id': typeof PublicPetsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/about' | '/quiz' | '/resources' | '/search' | '/pets/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/about' | '/quiz' | '/resources' | '/search' | '/' | '/pets/$id'
+  id:
+    | '__root__'
+    | '/_public'
+    | '/_public/about'
+    | '/_public/quiz'
+    | '/_public/resources'
+    | '/_public/search'
+    | '/_public/'
+    | '/_public/pets/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  PublicRoute: typeof PublicRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_public/': {
+      id: '/_public/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof PublicIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/search': {
+      id: '/_public/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof PublicSearchRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/resources': {
+      id: '/_public/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof PublicResourcesRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/quiz': {
+      id: '/_public/quiz'
+      path: '/quiz'
+      fullPath: '/quiz'
+      preLoaderRoute: typeof PublicQuizRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/about': {
+      id: '/_public/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof PublicAboutRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/pets/$id': {
+      id: '/_public/pets/$id'
+      path: '/pets/$id'
+      fullPath: '/pets/$id'
+      preLoaderRoute: typeof PublicPetsIdRouteImport
+      parentRoute: typeof PublicRoute
     }
   }
 }
 
+interface PublicRouteChildren {
+  PublicAboutRoute: typeof PublicAboutRoute
+  PublicQuizRoute: typeof PublicQuizRoute
+  PublicResourcesRoute: typeof PublicResourcesRoute
+  PublicSearchRoute: typeof PublicSearchRoute
+  PublicIndexRoute: typeof PublicIndexRoute
+  PublicPetsIdRoute: typeof PublicPetsIdRoute
+}
+
+const PublicRouteChildren: PublicRouteChildren = {
+  PublicAboutRoute: PublicAboutRoute,
+  PublicQuizRoute: PublicQuizRoute,
+  PublicResourcesRoute: PublicResourcesRoute,
+  PublicSearchRoute: PublicSearchRoute,
+  PublicIndexRoute: PublicIndexRoute,
+  PublicPetsIdRoute: PublicPetsIdRoute,
+}
+
+const PublicRouteWithChildren =
+  PublicRoute._addFileChildren(PublicRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  PublicRoute: PublicRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

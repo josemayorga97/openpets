@@ -1,0 +1,14 @@
+{
+  "name": "@repo/auth",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@repo/ui": "workspace:^"
+  },
+  "peerDependencies": {
+    "react": "^19"
+  }
+}

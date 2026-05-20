@@ -9,50 +9,431 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as ShelterRouteImport } from './routes/_shelter'
+import { Route as PublicRouteImport } from './routes/_public'
+import { Route as PublicIndexRouteImport } from './routes/_public/index'
+import { Route as ShelterTemplatesRouteImport } from './routes/_shelter/templates'
+import { Route as ShelterSettingsRouteImport } from './routes/_shelter/settings'
+import { Route as ShelterReportsRouteImport } from './routes/_shelter/reports'
+import { Route as ShelterDashboardRouteImport } from './routes/_shelter/dashboard'
+import { Route as PublicApplyRouteImport } from './routes/_public/apply'
+import { Route as ShelterListingsIndexRouteImport } from './routes/_shelter/listings.index'
+import { Route as ShelterAdoptionsIndexRouteImport } from './routes/_shelter/adoptions.index'
+import { Route as ShelterListingsNewRouteImport } from './routes/_shelter/listings.new'
+import { Route as ShelterAdoptionsIdRouteImport } from './routes/_shelter/adoptions.$id'
+import { Route as PublicApplySuccessRouteImport } from './routes/_public/apply/success'
+import { Route as PublicApplyMoreDetailsRouteImport } from './routes/_public/apply/more-details'
+import { Route as PublicApplyAgreementRouteImport } from './routes/_public/apply/agreement'
+import { Route as PublicApplyAboutYouRouteImport } from './routes/_public/apply/about-you'
+import { Route as PublicApplyAboutOrganizationRouteImport } from './routes/_public/apply/about-organization'
+import { Route as PublicApplyAboutAdoptionsRouteImport } from './routes/_public/apply/about-adoptions'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ShelterRoute = ShelterRouteImport.update({
+  id: '/_shelter',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicIndexRoute = PublicIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PublicRoute,
+} as any)
+const ShelterTemplatesRoute = ShelterTemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => ShelterRoute,
+} as any)
+const ShelterSettingsRoute = ShelterSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => ShelterRoute,
+} as any)
+const ShelterReportsRoute = ShelterReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => ShelterRoute,
+} as any)
+const ShelterDashboardRoute = ShelterDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => ShelterRoute,
+} as any)
+const PublicApplyRoute = PublicApplyRouteImport.update({
+  id: '/apply',
+  path: '/apply',
+  getParentRoute: () => PublicRoute,
+} as any)
+const ShelterListingsIndexRoute = ShelterListingsIndexRouteImport.update({
+  id: '/listings/',
+  path: '/listings/',
+  getParentRoute: () => ShelterRoute,
+} as any)
+const ShelterAdoptionsIndexRoute = ShelterAdoptionsIndexRouteImport.update({
+  id: '/adoptions/',
+  path: '/adoptions/',
+  getParentRoute: () => ShelterRoute,
+} as any)
+const ShelterListingsNewRoute = ShelterListingsNewRouteImport.update({
+  id: '/listings/new',
+  path: '/listings/new',
+  getParentRoute: () => ShelterRoute,
+} as any)
+const ShelterAdoptionsIdRoute = ShelterAdoptionsIdRouteImport.update({
+  id: '/adoptions/$id',
+  path: '/adoptions/$id',
+  getParentRoute: () => ShelterRoute,
+} as any)
+const PublicApplySuccessRoute = PublicApplySuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => PublicApplyRoute,
+} as any)
+const PublicApplyMoreDetailsRoute = PublicApplyMoreDetailsRouteImport.update({
+  id: '/more-details',
+  path: '/more-details',
+  getParentRoute: () => PublicApplyRoute,
+} as any)
+const PublicApplyAgreementRoute = PublicApplyAgreementRouteImport.update({
+  id: '/agreement',
+  path: '/agreement',
+  getParentRoute: () => PublicApplyRoute,
+} as any)
+const PublicApplyAboutYouRoute = PublicApplyAboutYouRouteImport.update({
+  id: '/about-you',
+  path: '/about-you',
+  getParentRoute: () => PublicApplyRoute,
+} as any)
+const PublicApplyAboutOrganizationRoute =
+  PublicApplyAboutOrganizationRouteImport.update({
+    id: '/about-organization',
+    path: '/about-organization',
+    getParentRoute: () => PublicApplyRoute,
+  } as any)
+const PublicApplyAboutAdoptionsRoute =
+  PublicApplyAboutAdoptionsRouteImport.update({
+    id: '/about-adoptions',
+    path: '/about-adoptions',
+    getParentRoute: () => PublicApplyRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof PublicIndexRoute
+  '/apply': typeof PublicApplyRouteWithChildren
+  '/dashboard': typeof ShelterDashboardRoute
+  '/reports': typeof ShelterReportsRoute
+  '/settings': typeof ShelterSettingsRoute
+  '/templates': typeof ShelterTemplatesRoute
+  '/apply/about-adoptions': typeof PublicApplyAboutAdoptionsRoute
+  '/apply/about-organization': typeof PublicApplyAboutOrganizationRoute
+  '/apply/about-you': typeof PublicApplyAboutYouRoute
+  '/apply/agreement': typeof PublicApplyAgreementRoute
+  '/apply/more-details': typeof PublicApplyMoreDetailsRoute
+  '/apply/success': typeof PublicApplySuccessRoute
+  '/adoptions/$id': typeof ShelterAdoptionsIdRoute
+  '/listings/new': typeof ShelterListingsNewRoute
+  '/adoptions/': typeof ShelterAdoptionsIndexRoute
+  '/listings/': typeof ShelterListingsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof PublicIndexRoute
+  '/apply': typeof PublicApplyRouteWithChildren
+  '/dashboard': typeof ShelterDashboardRoute
+  '/reports': typeof ShelterReportsRoute
+  '/settings': typeof ShelterSettingsRoute
+  '/templates': typeof ShelterTemplatesRoute
+  '/apply/about-adoptions': typeof PublicApplyAboutAdoptionsRoute
+  '/apply/about-organization': typeof PublicApplyAboutOrganizationRoute
+  '/apply/about-you': typeof PublicApplyAboutYouRoute
+  '/apply/agreement': typeof PublicApplyAgreementRoute
+  '/apply/more-details': typeof PublicApplyMoreDetailsRoute
+  '/apply/success': typeof PublicApplySuccessRoute
+  '/adoptions/$id': typeof ShelterAdoptionsIdRoute
+  '/listings/new': typeof ShelterListingsNewRoute
+  '/adoptions': typeof ShelterAdoptionsIndexRoute
+  '/listings': typeof ShelterListingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_public': typeof PublicRouteWithChildren
+  '/_shelter': typeof ShelterRouteWithChildren
+  '/_public/apply': typeof PublicApplyRouteWithChildren
+  '/_shelter/dashboard': typeof ShelterDashboardRoute
+  '/_shelter/reports': typeof ShelterReportsRoute
+  '/_shelter/settings': typeof ShelterSettingsRoute
+  '/_shelter/templates': typeof ShelterTemplatesRoute
+  '/_public/': typeof PublicIndexRoute
+  '/_public/apply/about-adoptions': typeof PublicApplyAboutAdoptionsRoute
+  '/_public/apply/about-organization': typeof PublicApplyAboutOrganizationRoute
+  '/_public/apply/about-you': typeof PublicApplyAboutYouRoute
+  '/_public/apply/agreement': typeof PublicApplyAgreementRoute
+  '/_public/apply/more-details': typeof PublicApplyMoreDetailsRoute
+  '/_public/apply/success': typeof PublicApplySuccessRoute
+  '/_shelter/adoptions/$id': typeof ShelterAdoptionsIdRoute
+  '/_shelter/listings/new': typeof ShelterListingsNewRoute
+  '/_shelter/adoptions/': typeof ShelterAdoptionsIndexRoute
+  '/_shelter/listings/': typeof ShelterListingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/apply'
+    | '/dashboard'
+    | '/reports'
+    | '/settings'
+    | '/templates'
+    | '/apply/about-adoptions'
+    | '/apply/about-organization'
+    | '/apply/about-you'
+    | '/apply/agreement'
+    | '/apply/more-details'
+    | '/apply/success'
+    | '/adoptions/$id'
+    | '/listings/new'
+    | '/adoptions/'
+    | '/listings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/apply'
+    | '/dashboard'
+    | '/reports'
+    | '/settings'
+    | '/templates'
+    | '/apply/about-adoptions'
+    | '/apply/about-organization'
+    | '/apply/about-you'
+    | '/apply/agreement'
+    | '/apply/more-details'
+    | '/apply/success'
+    | '/adoptions/$id'
+    | '/listings/new'
+    | '/adoptions'
+    | '/listings'
+  id:
+    | '__root__'
+    | '/_public'
+    | '/_shelter'
+    | '/_public/apply'
+    | '/_shelter/dashboard'
+    | '/_shelter/reports'
+    | '/_shelter/settings'
+    | '/_shelter/templates'
+    | '/_public/'
+    | '/_public/apply/about-adoptions'
+    | '/_public/apply/about-organization'
+    | '/_public/apply/about-you'
+    | '/_public/apply/agreement'
+    | '/_public/apply/more-details'
+    | '/_public/apply/success'
+    | '/_shelter/adoptions/$id'
+    | '/_shelter/listings/new'
+    | '/_shelter/adoptions/'
+    | '/_shelter/listings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  PublicRoute: typeof PublicRouteWithChildren
+  ShelterRoute: typeof ShelterRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_shelter': {
+      id: '/_shelter'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ShelterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_public/': {
+      id: '/_public/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof PublicIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_shelter/templates': {
+      id: '/_shelter/templates'
+      path: '/templates'
+      fullPath: '/templates'
+      preLoaderRoute: typeof ShelterTemplatesRouteImport
+      parentRoute: typeof ShelterRoute
+    }
+    '/_shelter/settings': {
+      id: '/_shelter/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof ShelterSettingsRouteImport
+      parentRoute: typeof ShelterRoute
+    }
+    '/_shelter/reports': {
+      id: '/_shelter/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ShelterReportsRouteImport
+      parentRoute: typeof ShelterRoute
+    }
+    '/_shelter/dashboard': {
+      id: '/_shelter/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof ShelterDashboardRouteImport
+      parentRoute: typeof ShelterRoute
+    }
+    '/_public/apply': {
+      id: '/_public/apply'
+      path: '/apply'
+      fullPath: '/apply'
+      preLoaderRoute: typeof PublicApplyRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_shelter/listings/': {
+      id: '/_shelter/listings/'
+      path: '/listings'
+      fullPath: '/listings/'
+      preLoaderRoute: typeof ShelterListingsIndexRouteImport
+      parentRoute: typeof ShelterRoute
+    }
+    '/_shelter/adoptions/': {
+      id: '/_shelter/adoptions/'
+      path: '/adoptions'
+      fullPath: '/adoptions/'
+      preLoaderRoute: typeof ShelterAdoptionsIndexRouteImport
+      parentRoute: typeof ShelterRoute
+    }
+    '/_shelter/listings/new': {
+      id: '/_shelter/listings/new'
+      path: '/listings/new'
+      fullPath: '/listings/new'
+      preLoaderRoute: typeof ShelterListingsNewRouteImport
+      parentRoute: typeof ShelterRoute
+    }
+    '/_shelter/adoptions/$id': {
+      id: '/_shelter/adoptions/$id'
+      path: '/adoptions/$id'
+      fullPath: '/adoptions/$id'
+      preLoaderRoute: typeof ShelterAdoptionsIdRouteImport
+      parentRoute: typeof ShelterRoute
+    }
+    '/_public/apply/success': {
+      id: '/_public/apply/success'
+      path: '/success'
+      fullPath: '/apply/success'
+      preLoaderRoute: typeof PublicApplySuccessRouteImport
+      parentRoute: typeof PublicApplyRoute
+    }
+    '/_public/apply/more-details': {
+      id: '/_public/apply/more-details'
+      path: '/more-details'
+      fullPath: '/apply/more-details'
+      preLoaderRoute: typeof PublicApplyMoreDetailsRouteImport
+      parentRoute: typeof PublicApplyRoute
+    }
+    '/_public/apply/agreement': {
+      id: '/_public/apply/agreement'
+      path: '/agreement'
+      fullPath: '/apply/agreement'
+      preLoaderRoute: typeof PublicApplyAgreementRouteImport
+      parentRoute: typeof PublicApplyRoute
+    }
+    '/_public/apply/about-you': {
+      id: '/_public/apply/about-you'
+      path: '/about-you'
+      fullPath: '/apply/about-you'
+      preLoaderRoute: typeof PublicApplyAboutYouRouteImport
+      parentRoute: typeof PublicApplyRoute
+    }
+    '/_public/apply/about-organization': {
+      id: '/_public/apply/about-organization'
+      path: '/about-organization'
+      fullPath: '/apply/about-organization'
+      preLoaderRoute: typeof PublicApplyAboutOrganizationRouteImport
+      parentRoute: typeof PublicApplyRoute
+    }
+    '/_public/apply/about-adoptions': {
+      id: '/_public/apply/about-adoptions'
+      path: '/about-adoptions'
+      fullPath: '/apply/about-adoptions'
+      preLoaderRoute: typeof PublicApplyAboutAdoptionsRouteImport
+      parentRoute: typeof PublicApplyRoute
     }
   }
 }
 
+interface PublicApplyRouteChildren {
+  PublicApplyAboutAdoptionsRoute: typeof PublicApplyAboutAdoptionsRoute
+  PublicApplyAboutOrganizationRoute: typeof PublicApplyAboutOrganizationRoute
+  PublicApplyAboutYouRoute: typeof PublicApplyAboutYouRoute
+  PublicApplyAgreementRoute: typeof PublicApplyAgreementRoute
+  PublicApplyMoreDetailsRoute: typeof PublicApplyMoreDetailsRoute
+  PublicApplySuccessRoute: typeof PublicApplySuccessRoute
+}
+
+const PublicApplyRouteChildren: PublicApplyRouteChildren = {
+  PublicApplyAboutAdoptionsRoute: PublicApplyAboutAdoptionsRoute,
+  PublicApplyAboutOrganizationRoute: PublicApplyAboutOrganizationRoute,
+  PublicApplyAboutYouRoute: PublicApplyAboutYouRoute,
+  PublicApplyAgreementRoute: PublicApplyAgreementRoute,
+  PublicApplyMoreDetailsRoute: PublicApplyMoreDetailsRoute,
+  PublicApplySuccessRoute: PublicApplySuccessRoute,
+}
+
+const PublicApplyRouteWithChildren = PublicApplyRoute._addFileChildren(
+  PublicApplyRouteChildren,
+)
+
+interface PublicRouteChildren {
+  PublicApplyRoute: typeof PublicApplyRouteWithChildren
+  PublicIndexRoute: typeof PublicIndexRoute
+}
+
+const PublicRouteChildren: PublicRouteChildren = {
+  PublicApplyRoute: PublicApplyRouteWithChildren,
+  PublicIndexRoute: PublicIndexRoute,
+}
+
+const PublicRouteWithChildren =
+  PublicRoute._addFileChildren(PublicRouteChildren)
+
+interface ShelterRouteChildren {
+  ShelterDashboardRoute: typeof ShelterDashboardRoute
+  ShelterReportsRoute: typeof ShelterReportsRoute
+  ShelterSettingsRoute: typeof ShelterSettingsRoute
+  ShelterTemplatesRoute: typeof ShelterTemplatesRoute
+  ShelterAdoptionsIdRoute: typeof ShelterAdoptionsIdRoute
+  ShelterListingsNewRoute: typeof ShelterListingsNewRoute
+  ShelterAdoptionsIndexRoute: typeof ShelterAdoptionsIndexRoute
+  ShelterListingsIndexRoute: typeof ShelterListingsIndexRoute
+}
+
+const ShelterRouteChildren: ShelterRouteChildren = {
+  ShelterDashboardRoute: ShelterDashboardRoute,
+  ShelterReportsRoute: ShelterReportsRoute,
+  ShelterSettingsRoute: ShelterSettingsRoute,
+  ShelterTemplatesRoute: ShelterTemplatesRoute,
+  ShelterAdoptionsIdRoute: ShelterAdoptionsIdRoute,
+  ShelterListingsNewRoute: ShelterListingsNewRoute,
+  ShelterAdoptionsIndexRoute: ShelterAdoptionsIndexRoute,
+  ShelterListingsIndexRoute: ShelterListingsIndexRoute,
+}
+
+const ShelterRouteWithChildren =
+  ShelterRoute._addFileChildren(ShelterRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  PublicRoute: PublicRouteWithChildren,
+  ShelterRoute: ShelterRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

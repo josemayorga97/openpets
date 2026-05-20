@@ -1,0 +1,17 @@
+@import "tailwindcss";
+@import "./preset.css";
+
+@layer base {
+  html, body, #app {
+    min-height: 100%;
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    background: var(--color-background);
+    color: var(--color-on-surface);
+  }
+  * {
+    box-sizing: border-box;
+  }
+}

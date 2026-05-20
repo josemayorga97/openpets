@@ -9,50 +9,162 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/_admin'
+import { Route as AdminIndexRouteImport } from './routes/_admin.index'
+import { Route as AdminPetsRouteImport } from './routes/_admin.pets'
+import { Route as AdminSheltersIndexRouteImport } from './routes/_admin.shelters.index'
+import { Route as AdminSheltersIdStatusRouteImport } from './routes/_admin.shelters.$id.status'
+import { Route as AdminSheltersIdReviewRouteImport } from './routes/_admin.shelters.$id.review'
 
-const IndexRoute = IndexRouteImport.update({
+const AdminRoute = AdminRouteImport.update({
+  id: '/_admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPetsRoute = AdminPetsRouteImport.update({
+  id: '/pets',
+  path: '/pets',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSheltersIndexRoute = AdminSheltersIndexRouteImport.update({
+  id: '/shelters/',
+  path: '/shelters/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSheltersIdStatusRoute = AdminSheltersIdStatusRouteImport.update({
+  id: '/shelters/$id/status',
+  path: '/shelters/$id/status',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSheltersIdReviewRoute = AdminSheltersIdReviewRouteImport.update({
+  id: '/shelters/$id/review',
+  path: '/shelters/$id/review',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AdminIndexRoute
+  '/pets': typeof AdminPetsRoute
+  '/shelters/': typeof AdminSheltersIndexRoute
+  '/shelters/$id/review': typeof AdminSheltersIdReviewRoute
+  '/shelters/$id/status': typeof AdminSheltersIdStatusRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/pets': typeof AdminPetsRoute
+  '/': typeof AdminIndexRoute
+  '/shelters': typeof AdminSheltersIndexRoute
+  '/shelters/$id/review': typeof AdminSheltersIdReviewRoute
+  '/shelters/$id/status': typeof AdminSheltersIdStatusRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_admin': typeof AdminRouteWithChildren
+  '/_admin/pets': typeof AdminPetsRoute
+  '/_admin/': typeof AdminIndexRoute
+  '/_admin/shelters/': typeof AdminSheltersIndexRoute
+  '/_admin/shelters/$id/review': typeof AdminSheltersIdReviewRoute
+  '/_admin/shelters/$id/status': typeof AdminSheltersIdStatusRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/pets'
+    | '/shelters/'
+    | '/shelters/$id/review'
+    | '/shelters/$id/status'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/pets'
+    | '/'
+    | '/shelters'
+    | '/shelters/$id/review'
+    | '/shelters/$id/status'
+  id:
+    | '__root__'
+    | '/_admin'
+    | '/_admin/pets'
+    | '/_admin/'
+    | '/_admin/shelters/'
+    | '/_admin/shelters/$id/review'
+    | '/_admin/shelters/$id/status'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_admin': {
+      id: '/_admin'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_admin/': {
+      id: '/_admin/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/pets': {
+      id: '/_admin/pets'
+      path: '/pets'
+      fullPath: '/pets'
+      preLoaderRoute: typeof AdminPetsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/shelters/': {
+      id: '/_admin/shelters/'
+      path: '/shelters'
+      fullPath: '/shelters/'
+      preLoaderRoute: typeof AdminSheltersIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/shelters/$id/status': {
+      id: '/_admin/shelters/$id/status'
+      path: '/shelters/$id/status'
+      fullPath: '/shelters/$id/status'
+      preLoaderRoute: typeof AdminSheltersIdStatusRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/shelters/$id/review': {
+      id: '/_admin/shelters/$id/review'
+      path: '/shelters/$id/review'
+      fullPath: '/shelters/$id/review'
+      preLoaderRoute: typeof AdminSheltersIdReviewRouteImport
+      parentRoute: typeof AdminRoute
     }
   }
 }
 
+interface AdminRouteChildren {
+  AdminPetsRoute: typeof AdminPetsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminSheltersIndexRoute: typeof AdminSheltersIndexRoute
+  AdminSheltersIdReviewRoute: typeof AdminSheltersIdReviewRoute
+  AdminSheltersIdStatusRoute: typeof AdminSheltersIdStatusRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminPetsRoute: AdminPetsRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminSheltersIndexRoute: AdminSheltersIndexRoute,
+  AdminSheltersIdReviewRoute: AdminSheltersIdReviewRoute,
+  AdminSheltersIdStatusRoute: AdminSheltersIdStatusRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -9,6 +9,15 @@ import { cloudflare } from '@cloudflare/vite-plugin'
 
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
+  ssr: {
+    noExternal: [
+      '@repo/ui',
+      '@repo/auth',
+      '@repo/domain',
+      '@repo/mock-data',
+      '@repo/api-client',
+    ],
+  },
   plugins: [
     devtools(),
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
