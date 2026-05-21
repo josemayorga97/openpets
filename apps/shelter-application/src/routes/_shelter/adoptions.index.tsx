@@ -167,7 +167,7 @@ function AdoptionsPage() {
       </div>
 
       <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/50 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="hidden md:block">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-surface-muted bg-surface-bright/50">
@@ -249,7 +249,64 @@ function AdoptionsPage() {
             </tbody>
           </table>
         </div>
-        <div className="border-t border-surface-muted bg-surface-container-lowest py-3 px-6 flex items-center justify-between">
+
+        <ul className="md:hidden divide-y divide-surface-muted">
+          {filtered.length === 0 ? (
+            <li className="py-10 px-5 text-center text-body-sm text-on-surface-variant">
+              No applications match this filter yet.
+            </li>
+          ) : (
+            filtered.map((a) => {
+              const s = statusStyles[a.status]
+              const petLabel = a.petBreed
+                ? `${a.petName} · ${a.petBreed}`
+                : a.petName
+              return (
+                <li key={a.id} className="relative">
+                  <span
+                    aria-hidden
+                    className={`absolute left-0 top-0 bottom-0 w-1 ${s.dot}`}
+                  />
+                  <Link
+                    to="/adoptions/$id"
+                    params={{ id: a.id }}
+                    className="flex items-center gap-3 pl-5 pr-3 py-4 active:bg-surface/60 transition-colors"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="text-label-md text-on-surface truncate">
+                          {a.applicantName}
+                        </div>
+                        <span
+                          className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] leading-none border ${s.bg} ${s.text}`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${s.dot}`}
+                          />
+                          {s.label}
+                        </span>
+                      </div>
+                      <div className="text-body-sm text-on-surface truncate">
+                        {petLabel}
+                      </div>
+                      <div className="text-body-sm text-on-surface-variant truncate mt-0.5">
+                        {a.applicantEmail}
+                        <span className="mx-1.5 opacity-60">·</span>
+                        {relativeDate(a.submittedAt)}
+                      </div>
+                    </div>
+                    <Icon
+                      name="chevron_right"
+                      className="text-[20px] text-on-surface-variant shrink-0"
+                    />
+                  </Link>
+                </li>
+              )
+            })
+          )}
+        </ul>
+
+        <div className="border-t border-surface-muted bg-surface-container-lowest py-3 px-5 md:px-6 flex items-center justify-between">
           <p className="text-body-sm text-on-surface-variant">
             Showing 1 to {filtered.length} of {applications.length} entries
           </p>
