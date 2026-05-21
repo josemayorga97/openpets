@@ -4,9 +4,10 @@ import {
   createFileRoute,
   redirect,
   useNavigate,
+  useRouterState,
 } from '@tanstack/react-router'
 import { sessionStore, useSession } from '@repo/auth'
-import { Sidebar } from '../components/sidebar'
+import { MobileSidebar, Sidebar } from '../components/sidebar'
 import { TopBar } from '../components/topbar'
 
 export const Route = createFileRoute('/_shelter')({
@@ -23,6 +24,13 @@ export const Route = createFileRoute('/_shelter')({
 function ShelterLayout() {
   const session = useSession()
   const navigate = useNavigate()
+  const [mobileOpen, setMobileOpen] = React.useState(false)
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+
+  React.useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
+
   React.useEffect(() => {
     if (session.status === 'guest') {
       void navigate({ to: '/' })
@@ -34,8 +42,9 @@ function ShelterLayout() {
   return (
     <div className="min-h-screen flex bg-background text-on-background">
       <Sidebar />
+      <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
       <div className="flex-1 md:ml-64 flex flex-col min-w-0">
-        <TopBar />
+        <TopBar onMenuClick={() => setMobileOpen(true)} />
         <main className="flex-1 p-container-margin md:p-section-padding max-w-[1280px] mx-auto w-full">
           <Outlet />
         </main>

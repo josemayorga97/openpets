@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { signOut } from '@repo/auth'
 import { Icon } from './icon'
@@ -16,14 +17,15 @@ const navItems: NavItem[] = [
   { to: '/settings', icon: 'settings', label: 'Settings' },
 ]
 
-export function Sidebar() {
+function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   const navigate = useNavigate()
   const handleLogout = async () => {
+    onNavigate?.()
     await signOut()
     void navigate({ to: '/' })
   }
   return (
-    <nav className="hidden md:flex h-screen w-64 fixed left-0 top-0 overflow-y-auto bg-surface border-r border-outline-variant flex-col py-6 px-4 z-40">
+    <>
       <div className="mb-8 px-4 flex items-center gap-3">
         <div className="w-9 h-9 rounded-md bg-primary-container flex items-center justify-center text-on-primary-container">
           <Icon name="pets" fill />
@@ -44,6 +46,7 @@ export function Sidebar() {
             <Link
               to={item.to}
               activeOptions={{ exact: item.to === '/' }}
+              onClick={onNavigate}
               className="group flex items-center gap-3 px-4 py-3 rounded-md text-label-md text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors"
               activeProps={{
                 className:
@@ -60,6 +63,7 @@ export function Sidebar() {
       <div className="mt-auto pt-6 border-t border-outline-variant/40 mb-2">
         <Link
           to="/listings/new"
+          onClick={onNavigate}
           className="w-full bg-primary text-on-primary py-3 px-4 rounded-md text-label-md flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
         >
           <Icon name="add" fill className="text-[18px]" />
@@ -83,6 +87,55 @@ export function Sidebar() {
           Logout
         </button>
       </div>
+    </>
+  )
+}
+
+export function Sidebar() {
+  return (
+    <nav className="hidden md:flex h-screen w-64 fixed left-0 top-0 overflow-y-auto bg-surface border-r border-outline-variant flex-col py-6 px-4 z-40">
+      <NavContent />
     </nav>
+  )
+}
+
+export function MobileSidebar({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  React.useEffect(() => {
+    if (!open) return
+    const original = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = original
+    }
+  }, [open])
+
+  if (!open) return null
+
+  return (
+    <div className="md:hidden fixed inset-0 z-50">
+      <button
+        type="button"
+        aria-label="Close menu"
+        className="absolute inset-0 bg-on-surface/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <nav className="relative h-full w-72 max-w-[85vw] bg-surface border-r border-outline-variant flex flex-col py-6 px-4 overflow-y-auto shadow-xl">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors"
+          aria-label="Close menu"
+        >
+          <Icon name="close" />
+        </button>
+        <NavContent onNavigate={onClose} />
+      </nav>
+    </div>
   )
 }

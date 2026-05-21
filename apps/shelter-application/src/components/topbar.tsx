@@ -2,13 +2,21 @@ import * as React from 'react'
 import { signOut, useSession } from '@repo/auth'
 import { Icon } from './icon'
 
-export function TopBar() {
+export function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const session = useSession()
   const [open, setOpen] = React.useState(false)
   const initial = session.user?.name?.[0]?.toUpperCase() ?? 'O'
 
   return (
-    <header className="sticky top-0 z-30 backdrop-blur-md bg-surface/80 border-b border-outline-variant flex justify-between items-center w-full px-gutter h-16">
+    <header className="sticky top-0 z-30 backdrop-blur-md bg-surface/80 border-b border-outline-variant flex justify-between items-center w-full px-gutter h-16 gap-3">
+      <button
+        type="button"
+        onClick={onMenuClick}
+        className="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors shrink-0"
+        aria-label="Open menu"
+      >
+        <Icon name="menu" />
+      </button>
       <div className="flex items-center gap-4 flex-1 max-w-md">
         <div className="relative w-full">
           <Icon
