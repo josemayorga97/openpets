@@ -69,13 +69,6 @@ adminRouter
       return c.json({ ok: true })
     },
   )
-  // Single transition endpoint. The target status drives which transition runs:
-  //   - 'suspended': suspend from any live state
-  //   - 'active' from 'pending': approve (also promotes the applicant to the
-  //     'shelter' role, via approveShelter)
-  //   - 'active' from 'suspended': reinstate
-  // `reason`/`notify` are accepted to match the client contract but are not
-  // yet acted on server-side.
   .post(
     '/shelters/:shelterId/status',
     zJson(
