@@ -1,8 +1,5 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
-import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import * as schema from '@repo/data-utils/schema'
 import {
   addPetImage,
   createPet,
@@ -11,6 +8,7 @@ import {
   getAvailablePetsByLocation,
   getPet,
   getPetImages,
+  getPetImageShelterId,
   getPetsByShelter,
   updatePet,
 } from '@repo/data-utils/queries/pets'
@@ -19,6 +17,7 @@ import {
   createPetSchema,
   updatePetSchema,
 } from '@repo/data-utils/zod-schema/pets'
+import { countApplicationsByPet } from '@repo/data-utils/queries/applications'
 import type { AppEnv } from '../env'
 import {
   requireMyShelter,
@@ -106,7 +105,18 @@ export const petsRouter = new Hono<AppEnv>()
     requireMyShelter,
     requirePetOwner,
     async (c) => {
-      await deletePet(c.var.pet!.id)
+      const petId = c.var.pet!.id
+      // adoptionApplication.petId is onDelete: 'restrict', so deleting a pet
+      // that still has applications would raise an FK error (500). Surface a
+      // clear 409 instead.
+      const applications = await countApplicationsByPet(petId)
+      if (applications > 0) {
+        return c.json(
+          { error: 'has_applications', applications },
+          409,
+        )
+      }
+      await deletePet(petId)
       return c.json({ ok: true })
     },
   )
@@ -118,9 +128,10 @@ export const petsRouter = new Hono<AppEnv>()
     requirePetOwner,
     zJson(createImageBody),
     async (c) => {
+      const petId = c.req.param('id');
       const imageId = await addPetImage({
         ...c.req.valid('json'),
-        petId: c.var.pet!.id,
+        petId
       })
       return c.json({ id: imageId })
     },
@@ -136,16 +147,9 @@ export const petsRouter = new Hono<AppEnv>()
     requireMyShelter,
     async (c) => {
       const imageId = c.req.param('imageId')
-      const db = drizzle(c.env.DB, { schema })
-      const rows = await db
-        .select({ shelterId: schema.pet.shelterId })
-        .from(schema.petImage)
-        .innerJoin(schema.pet, eq(schema.pet.id, schema.petImage.petId))
-        .where(eq(schema.petImage.id, imageId))
-        .limit(1)
-      const found = rows[0]
-      if (!found) return c.json({ error: 'not_found' }, 404)
-      if (found.shelterId !== c.var.shelter!.id) {
+      const shelterId = await getPetImageShelterId(imageId)
+      if (!shelterId) return c.json({ error: 'not_found' }, 404)
+      if (shelterId !== c.var.shelter!.id) {
         return c.json({ error: 'forbidden' }, 403)
       }
       await deletePetImage(imageId)

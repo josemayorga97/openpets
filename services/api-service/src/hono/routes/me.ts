@@ -1,14 +1,12 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
-import { drizzle } from 'drizzle-orm/d1'
-import { eq } from 'drizzle-orm'
-import * as schema from '@repo/data-utils/schema'
 import {
   addPetImage,
   createPet,
   deletePet,
   deletePetImage,
   getPet,
+  getPetImageShelterId,
   getPetsByShelter,
   updatePet,
 } from '@repo/data-utils/queries/pets'
@@ -18,6 +16,7 @@ import {
   getActiveAttachments,
   getAdoptionApplication,
   getApplicationsByShelter,
+  getAttachmentShelterId,
   softDeleteAttachment,
   updateApplicationStatus,
 } from '@repo/data-utils/queries/applications'
@@ -157,16 +156,9 @@ export const meRouter = new Hono<AppEnv>()
     requireMyShelter,
     async (c) => {
     const imageId = c.req.param('imageId')
-    const db = drizzle(c.env.DB, { schema })
-    const rows = await db
-      .select({ shelterId: schema.pet.shelterId })
-      .from(schema.petImage)
-      .innerJoin(schema.pet, eq(schema.pet.id, schema.petImage.petId))
-      .where(eq(schema.petImage.id, imageId))
-      .limit(1)
-    const found = rows[0]
-    if (!found) return c.json({ error: 'not_found' }, 404)
-    if (found.shelterId !== c.var.shelter!.id) {
+    const shelterId = await getPetImageShelterId(imageId)
+    if (!shelterId) return c.json({ error: 'not_found' }, 404)
+    if (shelterId !== c.var.shelter!.id) {
       return c.json({ error: 'forbidden' }, 403)
     }
     await deletePetImage(imageId)
@@ -281,22 +273,9 @@ export const meRouter = new Hono<AppEnv>()
     requireMyShelter,
     async (c) => {
       const attachmentId = c.req.param('attachmentId')
-      const db = drizzle(c.env.DB, { schema })
-      const rows = await db
-        .select({ shelterId: schema.adoptionApplication.shelterId })
-        .from(schema.adoptionFormAttachment)
-        .innerJoin(
-          schema.adoptionApplication,
-          eq(
-            schema.adoptionApplication.id,
-            schema.adoptionFormAttachment.applicationId,
-          ),
-        )
-        .where(eq(schema.adoptionFormAttachment.id, attachmentId))
-        .limit(1)
-      const found = rows[0]
-      if (!found) return c.json({ error: 'not_found' }, 404)
-      if (found.shelterId !== c.var.shelter!.id) {
+      const shelterId = await getAttachmentShelterId(attachmentId)
+      if (!shelterId) return c.json({ error: 'not_found' }, 404)
+      if (shelterId !== c.var.shelter!.id) {
         return c.json({ error: 'forbidden' }, 403)
       }
       await softDeleteAttachment(attachmentId)

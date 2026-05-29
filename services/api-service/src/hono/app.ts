@@ -9,6 +9,7 @@ import { usersRouter } from './routes/users'
 import { meRouter } from './routes/me'
 import { adminRouter } from './routes/admin'
 import type { AppEnv } from './env'
+import { initDatabase } from '@repo/data-utils/database'
 
 type FullEnv = {
   Bindings: Env
@@ -18,12 +19,16 @@ type FullEnv = {
 export const App = new Hono<FullEnv>();
 
 App.use("*", cors());
+App.use("*", async (c, next) => {
+  initDatabase(c.env.DB);
+  await next();
+});
 
 App.on(["POST", "GET"], "/api/auth/*", (c) => {
   const auth = getAuth(c.env);
-	return auth.handler(c.req.raw);
+  return auth.handler(c.req.raw);
 });
- 
+
 App.route('/pets', petsRouter)
   .route('/shelters', sheltersRouter)
   .route('/applications', applicationsRouter)

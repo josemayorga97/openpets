@@ -10,7 +10,7 @@ import {
   CreateAdoptionFormAttachmentSchemaType,
   CreateAdoptionFormSchemaType,
 } from "@/zod/applications";
-import { and, desc, eq, isNull, lt } from "drizzle-orm";
+import { and, count, desc, eq, isNull, lt } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 export async function createAdoptionApplication(
@@ -38,6 +38,15 @@ export async function getAdoptionApplication(applicationId: string) {
     .where(eq(adoptionApplication.id, applicationId))
     .limit(1);
   return result[0] ?? null;
+}
+
+export async function countApplicationsByPet(petId: string) {
+  const db = getDb();
+  const result = await db
+    .select({ value: count() })
+    .from(adoptionApplication)
+    .where(eq(adoptionApplication.petId, petId));
+  return result[0]?.value ?? 0;
 }
 
 export async function getApplicationsByShelter(
@@ -158,6 +167,38 @@ export async function softDeleteAttachment(attachmentId: string) {
     .update(adoptionFormAttachment)
     .set({ deletedAt: new Date() })
     .where(eq(adoptionFormAttachment.id, attachmentId));
+}
+
+// Resolves the applicant that owns an attachment, via its application. Used to
+// authorize applicant-scoped attachment mutations. Null when not found.
+export async function getAttachmentApplicantId(attachmentId: string) {
+  const db = getDb();
+  const rows = await db
+    .select({ applicantId: adoptionApplication.applicantId })
+    .from(adoptionFormAttachment)
+    .innerJoin(
+      adoptionApplication,
+      eq(adoptionApplication.id, adoptionFormAttachment.applicationId),
+    )
+    .where(eq(adoptionFormAttachment.id, attachmentId))
+    .limit(1);
+  return rows[0]?.applicantId ?? null;
+}
+
+// Resolves the shelter that owns an attachment, via its application. Used to
+// authorize shelter-scoped attachment mutations. Null when not found.
+export async function getAttachmentShelterId(attachmentId: string) {
+  const db = getDb();
+  const rows = await db
+    .select({ shelterId: adoptionApplication.shelterId })
+    .from(adoptionFormAttachment)
+    .innerJoin(
+      adoptionApplication,
+      eq(adoptionApplication.id, adoptionFormAttachment.applicationId),
+    )
+    .where(eq(adoptionFormAttachment.id, attachmentId))
+    .limit(1);
+  return rows[0]?.shelterId ?? null;
 }
 
 export async function getActiveAttachments(applicationId: string) {

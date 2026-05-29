@@ -1,13 +1,11 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
-import { eq } from 'drizzle-orm'
-import * as schema from '@repo/data-utils/schema'
 import {
   createAdoptionApplication,
   createAdoptionForm,
   getActiveAttachments,
   getApplicationsByApplicant,
   getAdoptionForm,
+  getAttachmentApplicantId,
   markAttachmentUploaded,
 } from '@repo/data-utils/queries/applications'
 import {
@@ -62,22 +60,9 @@ export const applicationsRouter = new Hono<AppEnv>()
   })
   .post('/attachments/:attachmentId/uploaded', requireSession, async (c) => {
     const attachmentId = c.req.param('attachmentId')
-    const db = drizzle(c.env.DB, { schema })
-    const rows = await db
-      .select({ applicantId: schema.adoptionApplication.applicantId })
-      .from(schema.adoptionFormAttachment)
-      .innerJoin(
-        schema.adoptionApplication,
-        eq(
-          schema.adoptionApplication.id,
-          schema.adoptionFormAttachment.applicationId,
-        ),
-      )
-      .where(eq(schema.adoptionFormAttachment.id, attachmentId))
-      .limit(1)
-    const found = rows[0]
-    if (!found) return c.json({ error: 'not_found' }, 404)
-    if (found.applicantId !== c.var.user!.id) {
+    const applicantId = await getAttachmentApplicantId(attachmentId)
+    if (!applicantId) return c.json({ error: 'not_found' }, 404)
+    if (applicantId !== c.var.user!.id) {
       return c.json({ error: 'forbidden' }, 403)
     }
     await markAttachmentUploaded(attachmentId)
