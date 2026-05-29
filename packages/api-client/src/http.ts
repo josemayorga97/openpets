@@ -47,13 +47,13 @@ export class HttpClient implements ApiClient {
     return this.json(`/pets/${encodeURIComponent(id)}`)
   }
   listCategories(): Promise<Category[]> {
-    return this.json('/categories')
+    return this.json('/pets/categories')
   }
   listSuccessStories({ limit }: { limit: number }): Promise<SuccessStory[]> {
-    return this.json(`/success-stories?limit=${limit}`)
+    return this.json(`/pets/success-stories?limit=${limit}`)
   }
-  listBreeds({ type }: { type: PetType }): Promise<string[]> {
-    return this.json(`/breeds?type=${type}`)
+  listBreeds({ species }: { species: Species }): Promise<string[]> {
+    return this.json(`/pets/breeds?species=${species}`)
   }
 
   listShelters(args?: { status?: ShelterStatus }): Promise<Shelter[]> {
