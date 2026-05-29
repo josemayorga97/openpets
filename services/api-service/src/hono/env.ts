@@ -1,6 +1,7 @@
 import type { getPet } from '@repo/data-utils/queries/pets'
 import type { getAdoptionApplication } from '@repo/data-utils/queries/applications'
 import type { Auth } from '@repo/data-utils/auth'
+import { Logger } from './logger/logger'
 
 export type ShelterContext = {
   id: string
@@ -22,7 +23,9 @@ export type Variables = {
   user?: SessionUser
   shelter?: ShelterContext
   pet?: PetRow
-  application?: ApplicationRow
+  application?: ApplicationRow,
+  requestId:string,
+  logger: Logger
 }
 
 export type AppEnv = {

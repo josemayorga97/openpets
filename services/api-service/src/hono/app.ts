@@ -10,6 +10,7 @@ import { meRouter } from './routes/me'
 import { adminRouter } from './routes/admin'
 import type { AppEnv } from './env'
 import { initDatabase } from '@repo/data-utils/database'
+import { requestId } from 'hono/request-id'
 
 type FullEnv = {
   Bindings: Env
@@ -17,7 +18,7 @@ type FullEnv = {
 }
 
 export const App = new Hono<FullEnv>();
-
+App.use("*", requestId());
 App.use("*", cors());
 App.use("*", async (c, next) => {
   initDatabase(c.env.DB);

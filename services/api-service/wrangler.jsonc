@@ -17,6 +17,7 @@
 		"stage": {
 			"vars": {
 				"TRUSTED_ORIGINS": "https://user-application-stage.workers.dev,https://shelter-application-stage.workers.dev,https://admin-application-stage.workers.dev",
+				"LOG_LEVEL": "debug",
 			},
 			"d1_databases": [{
 				"binding": "DB",
@@ -32,6 +33,7 @@
 		"prod": {
 			"vars": {
 				"TRUSTED_ORIGINS": "https://www.openpets.org,https://shelter.openpets.org,https://admin.openpets.org",
+				"LOG_LEVEL": "info",
 			},
 			"d1_databases": [{
 				"binding": "DB",
