@@ -70,6 +70,19 @@ export const createPetImageSchema = petImageSchema.omit({
   createdAt: true,
 });
 
+// Validator for the public catalog search. Mirrors `SearchPetsFilters` in
+// queries/pets.ts — shared by the `/pets/search` route and the user app's
+// search server fn so the wire shape can't drift from the query shape.
+export const searchPetsSchema = z.object({
+  species: speciesEnum.optional(),
+  breeds: z.array(z.string()).optional(),
+  ages: z.array(ageEnum).optional(),
+  sizes: z.array(sizeEnum).optional(),
+  sort: z.enum(["nearest", "newest", "oldest"]).optional(),
+  page: z.coerce.number().int().positive().optional(),
+  pageSize: z.coerce.number().int().positive().max(60).optional(),
+});
+
 export type SpeciesType = z.infer<typeof speciesEnum>;
 export type AgeType = z.infer<typeof ageEnum>;
 export type GenderType = z.infer<typeof genderEnum>;
@@ -81,3 +94,4 @@ export type CreatePetSchemaType = z.infer<typeof createPetSchema>;
 export type UpdatePetSchemaType = z.infer<typeof updatePetSchema>;
 export type PetImageSchemaType = z.infer<typeof petImageSchema>;
 export type CreatePetImageSchemaType = z.infer<typeof createPetImageSchema>;
+export type SearchPetsSchemaType = z.infer<typeof searchPetsSchema>;

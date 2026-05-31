@@ -5,6 +5,7 @@ import {
   createPet,
   deletePet,
   deletePetImage,
+  getImagesByPetIds,
   getPet,
   getPetImageShelterId,
   getPetsByShelter,
@@ -35,7 +36,7 @@ import {
   createAdoptionFormAttachmentSchema,
 } from '@repo/data-utils/zod-schema/applications'
 import { updateShelterSchema } from '@repo/data-utils/zod-schema/shelters'
-import type { AppEnv } from '../env'
+import type { AppEnv, PetRow } from '../env'
 import {
   requireMyShelter,
   requirePetOwner,
@@ -43,6 +44,14 @@ import {
   requireSession,
 } from '../middleware/auth'
 import { zJson, zQuery } from '../middleware/validate'
+import { groupPhotoKeys, toPublicPet } from '../lib/to-public-pet'
+
+async function composePets(rows: PetRow[], assetBase: string) {
+  if (rows.length === 0) return []
+  const images = await getImagesByPetIds(rows.map((r) => r.id))
+  const byPet = groupPhotoKeys(images)
+  return rows.map((row) => toPublicPet(row, byPet.get(row.id) ?? [], assetBase))
+}
 
 const beforeQuery = z.object({
   createdBefore: z.coerce.number().optional(),
@@ -91,9 +100,10 @@ export const meRouter = new Hono<AppEnv>()
     zQuery(beforeQuery),
     async (c) => {
       const { createdBefore } = c.req.valid('query')
-      const items = await getPetsByShelter(c.var.shelter!.id, createdBefore)
+      const rows = await getPetsByShelter(c.var.shelter!.id, createdBefore)
       const nextCursor =
-        items.length === 25 ? items[items.length - 1]!.createdAt.getTime() : null
+        rows.length === 25 ? rows[rows.length - 1]!.createdAt.getTime() : null
+      const items = await composePets(rows, c.env.PUBLIC_ASSET_BASE_URL)
       return c.json({ items, nextCursor })
     },
   )

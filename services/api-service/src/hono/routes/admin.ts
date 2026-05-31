@@ -9,6 +9,7 @@ import {
 } from '@repo/data-utils/queries/shelters'
 import {
   deletePet,
+  getImagesByPetIds,
   getPetsByShelter,
   updatePet,
 } from '@repo/data-utils/queries/pets'
@@ -30,9 +31,17 @@ import {
   contributionStatusEnum,
   createContributionSchema,
 } from '@repo/data-utils/zod-schema/sponsorships'
-import type { AppEnv } from '../env'
+import type { AppEnv, PetRow } from '../env'
 import { requireRole, requireSession } from '../middleware/auth'
 import { zJson, zQuery } from '../middleware/validate'
+import { groupPhotoKeys, toPublicPet } from '../lib/to-public-pet'
+
+async function composePets(rows: PetRow[], assetBase: string) {
+  if (rows.length === 0) return []
+  const images = await getImagesByPetIds(rows.map((r) => r.id))
+  const byPet = groupPhotoKeys(images)
+  return rows.map((row) => toPublicPet(row, byPet.get(row.id) ?? [], assetBase))
+}
 
 
 const beforeQuery = z.object({
@@ -44,10 +53,7 @@ const submittedBeforeQuery = z.object({
 })
 
 export const adminRouter = new Hono<AppEnv>()
-
-adminRouter.use('*', requireSession, requireRole('admin'))
-
-adminRouter
+  .use('*', requireSession, requireRole('admin'))
   // ---- Shelters ----------------------------------------------------------
   .get(
     '/shelters',
@@ -116,12 +122,13 @@ adminRouter
     zQuery(beforeQuery),
     async (c) => {
       const { createdBefore } = c.req.valid('query')
-      const items = await getPetsByShelter(
+      const rows = await getPetsByShelter(
         c.req.param('shelterId'),
         createdBefore,
       )
       const nextCursor =
-        items.length === 25 ? items[items.length - 1]!.createdAt.getTime() : null
+        rows.length === 25 ? rows[rows.length - 1]!.createdAt.getTime() : null
+      const items = await composePets(rows, c.env.PUBLIC_ASSET_BASE_URL)
       return c.json({ items, nextCursor })
     },
   )

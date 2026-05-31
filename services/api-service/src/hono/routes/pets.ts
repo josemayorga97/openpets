@@ -6,19 +6,23 @@ import {
   deletePet,
   deletePetImage,
   getAvailablePetsByLocation,
+  getFeaturedPets,
+  getImagesByPetIds,
   getPet,
   getPetImages,
   getPetImageShelterId,
   getPetsByShelter,
+  searchAvailablePets,
   updatePet,
 } from '@repo/data-utils/queries/pets'
 import {
   createPetImageSchema,
   createPetSchema,
+  searchPetsSchema,
   updatePetSchema,
 } from '@repo/data-utils/zod-schema/pets'
 import { countApplicationsByPet } from '@repo/data-utils/queries/applications'
-import type { AppEnv } from '../env'
+import type { AppEnv, PetRow } from '../env'
 import {
   requireMyShelter,
   requirePetOwner,
@@ -27,6 +31,16 @@ import {
   requireShelterOwner,
 } from '../middleware/auth'
 import { zJson, zQuery } from '../middleware/validate'
+import { groupPhotoKeys, toPublicPet } from '../lib/to-public-pet'
+
+// Batch-loads images for a set of rows and composes each into a PublicPet,
+// resolving storage keys to absolute URLs against the public asset base.
+async function composePets(rows: PetRow[], assetBase: string) {
+  if (rows.length === 0) return []
+  const images = await getImagesByPetIds(rows.map((r) => r.id))
+  const byPet = groupPhotoKeys(images)
+  return rows.map((row) => toPublicPet(row, byPet.get(row.id) ?? [], assetBase))
+}
 
 const beforeQuery = z.object({
   createdBefore: z.coerce.number().optional(),
@@ -59,13 +73,28 @@ export const petsRouter = new Hono<AppEnv>()
   )
   .get('/available', zQuery(locationQuery), async (c) => {
     const { countryCode, region, city, createdBefore } = c.req.valid('query')
-    const items = await getAvailablePetsByLocation(
+    const rows = await getAvailablePetsByLocation(
       { countryCode, region, city },
       createdBefore,
     )
     const nextCursor =
-      items.length === 25 ? items[items.length - 1]!.createdAt.getTime() : null
+      rows.length === 25 ? rows[rows.length - 1]!.createdAt.getTime() : null
+    const items = await composePets(rows, c.env.PUBLIC_ASSET_BASE_URL)
     return c.json({ items, nextCursor })
+  })
+  // Public home-page rail — newest listed/available pets, no auth or location.
+  .get('/featured', async (c) => {
+    const rows = await getFeaturedPets()
+    const items = await composePets(rows, c.env.PUBLIC_ASSET_BASE_URL)
+    return c.json({ items })
+  })
+  // Public catalog search with filters + pagination.
+  .get('/search', zQuery(searchPetsSchema), async (c) => {
+    const { rows, total, page, pageSize } = await searchAvailablePets(
+      c.req.valid('query'),
+    )
+    const results = await composePets(rows, c.env.PUBLIC_ASSET_BASE_URL)
+    return c.json({ results, total, page, pageSize })
   })
   .get(
     '/by-shelter/:shelterId',
@@ -75,16 +104,24 @@ export const petsRouter = new Hono<AppEnv>()
     zQuery(beforeQuery),
     async (c) => {
       const { createdBefore } = c.req.valid('query')
-      const items = await getPetsByShelter(c.var.shelter!.id, createdBefore)
+      const rows = await getPetsByShelter(c.var.shelter!.id, createdBefore)
       const nextCursor =
-        items.length === 25 ? items[items.length - 1]!.createdAt.getTime() : null
+        rows.length === 25 ? rows[rows.length - 1]!.createdAt.getTime() : null
+      const items = await composePets(rows, c.env.PUBLIC_ASSET_BASE_URL)
       return c.json({ items, nextCursor })
     },
   )
   .get('/:id', async (c) => {
     const row = await getPet(c.req.param('id'))
     if (!row) return c.json({ error: 'not_found' }, 404)
-    return c.json(row)
+    const images = await getPetImages(row.id)
+    return c.json(
+      toPublicPet(
+        row,
+        images.map((i) => i.storageKey),
+        c.env.PUBLIC_ASSET_BASE_URL,
+      ),
+    )
   })
   .patch(
     '/:id',

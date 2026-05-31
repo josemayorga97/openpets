@@ -27,8 +27,6 @@
 	},
 	"dependencies": {
 		"@repo/data-utils": "workspace:*",
-		"@repo/domain": "workspace:^",
-		"@repo/mock-data": "workspace:*",
 		"better-auth": "1.6.11",
 		"hono": "^4.12.9",
 		"moment": "^2.30.1",

@@ -26,12 +26,9 @@ importers:
       '@repo/auth':
         specifier: workspace:^
         version: link:../../packages/auth
-      '@repo/domain':
-        specifier: workspace:^
-        version: link:../../packages/domain
-      '@repo/mock-data':
-        specifier: workspace:^
-        version: link:../../packages/mock-data
+      '@repo/data-utils':
+        specifier: workspace:*
+        version: link:../../packages/data-utils
       '@repo/ui':
         specifier: workspace:^
         version: link:../../packages/ui
@@ -150,12 +147,9 @@ importers:
       '@repo/auth':
         specifier: workspace:^
         version: link:../../packages/auth
-      '@repo/domain':
-        specifier: workspace:^
-        version: link:../../packages/domain
-      '@repo/mock-data':
-        specifier: workspace:^
-        version: link:../../packages/mock-data
+      '@repo/data-utils':
+        specifier: workspace:*
+        version: link:../../packages/data-utils
       '@repo/ui':
         specifier: workspace:^
         version: link:../../packages/ui
@@ -295,12 +289,9 @@ importers:
       '@repo/auth':
         specifier: workspace:^
         version: link:../../packages/auth
-      '@repo/domain':
-        specifier: workspace:^
-        version: link:../../packages/domain
-      '@repo/mock-data':
-        specifier: workspace:^
-        version: link:../../packages/mock-data
+      '@repo/data-utils':
+        specifier: workspace:*
+        version: link:../../packages/data-utils
       '@repo/ui':
         specifier: workspace:^
         version: link:../../packages/ui
@@ -398,12 +389,12 @@ importers:
 
   packages/api-client:
     dependencies:
-      '@repo/domain':
-        specifier: workspace:^
-        version: link:../domain
-      '@repo/mock-data':
-        specifier: workspace:^
-        version: link:../mock-data
+      '@repo/api-service':
+        specifier: workspace:*
+        version: link:../../services/api-service
+      hono:
+        specifier: ^4.12.9
+        version: 4.12.23
 
   packages/auth:
     dependencies:
@@ -457,18 +448,6 @@ importers:
         specifier: ^4.94.0
         version: 4.95.0(@cloudflare/workers-types@4.20260526.1)
 
-  packages/domain:
-    dependencies:
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
-
-  packages/mock-data:
-    dependencies:
-      '@repo/domain':
-        specifier: workspace:^
-        version: link:../domain
-
   packages/ui:
     dependencies:
       '@radix-ui/react-avatar':
@@ -495,9 +474,12 @@ importers:
       '@radix-ui/react-slot':
         specifier: ^1.2.4
         version: 1.2.4(@types/react@19.2.15)(react@19.2.6)
-      '@repo/domain':
-        specifier: workspace:^
-        version: link:../domain
+      '@repo/api-client':
+        specifier: workspace:*
+        version: link:../api-client
+      '@repo/data-utils':
+        specifier: workspace:*
+        version: link:../data-utils
       '@tanstack/react-router':
         specifier: '*'
         version: 1.170.8(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -528,12 +510,6 @@ importers:
       '@repo/data-utils':
         specifier: workspace:*
         version: link:../../packages/data-utils
-      '@repo/domain':
-        specifier: workspace:^
-        version: link:../../packages/domain
-      '@repo/mock-data':
-        specifier: workspace:*
-        version: link:../../packages/mock-data
       better-auth:
         specifier: 1.6.11
         version: 1.6.11(@cloudflare/workers-types@4.20260526.1)(@opentelemetry/api@1.9.1)(@tanstack/react-start@1.168.14(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(vite@7.3.3(@types/node@25.9.1)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.3)))(better-sqlite3@12.10.0)(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260526.1)(@opentelemetry/api@1.9.1)(better-sqlite3@12.10.0)(kysely@0.29.2))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(solid-js@1.9.13)(vitest@3.2.4(@types/node@25.9.1)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.22.3))
