@@ -10,7 +10,8 @@
     "./lib/*": "./src/lib/*"
   },
   "dependencies": {
-    "@repo/domain": "workspace:^",
+    "@repo/api-client": "workspace:*",
+    "@repo/data-utils": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.4.0",

@@ -6,29 +6,38 @@ import {
 } from '@repo/ui'
 import type { FiltersValue } from '@repo/ui'
 import { SignInDialog, useSession } from '@repo/auth'
-import { searchFiltersSchema } from '@repo/domain'
-import type { SortKey } from '@repo/domain'
+import { searchPetsSchema } from '@repo/data-utils/zod-schema/pets'
+import { z } from 'zod'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ChevronDown } from 'lucide-react'
 import * as React from 'react'
 import { useFavorites } from '#/lib/favorites'
-import { fetchBreeds, searchPetsFn } from '#/lib/server-fns'
+import { searchPetsFn } from '#/lib/server-fns'
+
+type SortKey = 'nearest' | 'newest' | 'oldest'
+
+// Route search state: the backend-validated filters plus UI-only fields
+// (distance / free-text location / out-of-town toggle) that drive the
+// controls but have no server-side effect yet. The server fn re-validates
+// against searchPetsSchema, which strips the UI-only keys.
+const searchRouteSchema = searchPetsSchema.extend({
+  distance: z.coerce.number().optional(),
+  location: z.string().optional(),
+  includeOutOfTown: z.boolean().optional(),
+})
 
 export const Route = createFileRoute('/_public/search')({
-  validateSearch: (s) => searchFiltersSchema.partial().parse(s),
+  validateSearch: (s) => searchRouteSchema.parse(s),
   loaderDeps: ({ search }) => search,
   loader: async ({ deps }) => {
-    const [results, breeds] = await Promise.all([
-      searchPetsFn({ data: deps }),
-      fetchBreeds({ data: { type: deps.petType ?? 'dog' } }),
-    ])
-    return { results, breeds }
+    const results = await searchPetsFn({ data: deps })
+    return { results }
   },
   component: SearchPage,
 })
 
 function SearchPage() {
-  const { results, breeds } = Route.useLoaderData()
+  const { results } = Route.useLoaderData()
   const search = Route.useSearch()
   const navigate = useNavigate({ from: '/search' })
   const session = useSession()
@@ -81,7 +90,7 @@ function SearchPage() {
       <div className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-8 flex flex-col md:flex-row gap-8">
         <FiltersSidebar
           filters={filters}
-          breeds={breeds}
+          breeds={[]}
           onChange={(next) =>
             updateSearch({
               breeds: next.breeds.length ? next.breeds : undefined,

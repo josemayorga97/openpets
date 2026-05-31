@@ -1,42 +1,36 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { pets } from '@repo/mock-data'
+import type { PublicPet } from '@repo/api-client'
 import { Icon } from '../../components/icon'
+import { listMyPetsFn } from '../../lib/server-fns'
 
 export const Route = createFileRoute('/_shelter/listings/')({
+  loader: () => listMyPetsFn(),
   component: ListingsPage,
 })
 
-type Status = 'adoptable' | 'pending' | 'draft'
+type Status = PublicPet['status']
 
 const statusStyles: Record<Status, { dot: string; text: string; label: string }> = {
-  adoptable: {
+  available: {
     dot: 'bg-status-success',
     text: 'text-status-success border-status-success/20',
     label: 'Adoptable',
   },
-  pending: {
+  medical: {
     dot: 'bg-status-warning',
     text: 'text-status-warning border-status-warning/20',
-    label: 'Pending',
+    label: 'Medical Hold',
   },
-  draft: {
+  adopted: {
     dot: 'bg-outline',
     text: 'text-on-surface-variant border-outline-variant',
-    label: 'Draft',
+    label: 'Adopted',
   },
-}
-
-function pickStatus(idx: number): Status {
-  if (idx % 5 === 2) return 'draft'
-  if (idx % 3 === 1) return 'pending'
-  return 'adoptable'
 }
 
 function ListingsPage() {
-  const items = pets.slice(0, 12).map((p, i) => ({
-    pet: p,
-    status: pickStatus(i),
-  }))
+  const pets = Route.useLoaderData()
+  const items = pets.map((pet) => ({ pet, status: pet.status }))
 
   return (
     <>
@@ -159,7 +153,7 @@ function ListingsPage() {
 
       <div className="mt-12 flex items-center justify-between border-t border-outline-variant pt-6">
         <p className="text-body-sm text-on-surface-variant">
-          Showing 1 to {items.length} of 48 listings
+          Showing {items.length} listing{items.length === 1 ? '' : 's'}
         </p>
         <div className="flex items-center gap-2">
           <button

@@ -1,7 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import { Cake, ChevronDown, PawPrint, Ruler, Users } from 'lucide-react'
 import * as React from 'react'
-import type { AgeBucket, Size } from '@repo/domain'
+import type {
+  AgeType as AgeBucket,
+  SizeType as Size,
+} from '@repo/data-utils/zod-schema/pets'
 import { cn } from '../../lib/utils'
 import { Checkbox } from '../ui/checkbox'
 

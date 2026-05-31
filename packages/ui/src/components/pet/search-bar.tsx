@@ -1,5 +1,5 @@
 import { ChevronDown, Pencil } from 'lucide-react'
-import type { PetType } from '@repo/domain'
+import type { SpeciesType as Species } from '@repo/data-utils/zod-schema/pets'
 import { Button } from '../ui/button'
 
 export interface SearchBarValue {

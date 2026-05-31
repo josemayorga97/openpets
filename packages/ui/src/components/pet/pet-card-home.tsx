@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { MapPin, PawPrint } from 'lucide-react'
-import type { Pet } from '@repo/domain'
+import type { PublicPet as Pet } from '@repo/api-client'
 import { Badge } from '../ui/badge'
 import { FavoriteButton } from './favorite-button'
 

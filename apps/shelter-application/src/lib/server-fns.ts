@@ -1,69 +1,64 @@
-import {
-  adoptionStatusEnum,
-  ageEnum,
-  genderEnum,
-  petStatusEnum,
-  petTypeEnum,
-  sizeEnum,
-} from '@repo/domain'
+import { createPetSchema } from '@repo/data-utils/zod-schema/pets'
+import { applicationStatusEnum } from '@repo/data-utils/zod-schema/applications'
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { api } from './api.server'
+import { makeApi } from './api.server'
 
-const newPetInput = z.object({
-  name: z.string().min(1),
-  type: petTypeEnum,
-  breed: z.string().min(1),
-  age: ageEnum,
-  ageLabel: z.string().min(1),
-  gender: genderEnum,
-  size: sizeEnum,
-  location: z.object({
-    city: z.string().min(1),
-    state: z.string().min(1),
-    zip: z.string().optional(),
-  }),
-  photos: z.array(z.string()),
-  description: z.string().min(1),
-  outOfTown: z.boolean(),
-  transportAvailable: z.boolean(),
-  shelterId: z.string().min(1),
-  status: petStatusEnum,
-})
+// shelterId is implied by the session server-side, so the form never sends it.
+const newPetInput = createPetSchema.omit({ shelterId: true })
 
 export const createPetFn = createServerFn({ method: 'POST' })
   .inputValidator((d: unknown) => newPetInput.parse(d))
-  .handler(async ({ data }) => api.createPet(data))
+  .handler(async ({ data }) => {
+    const client = makeApi()
+    const res = await client.me.pets.$post({ json: data })
+    if (!res.ok) throw new Error(`API ${res.status}`)
+    return res.json()
+  })
+
+export const listMyPetsFn = createServerFn({ method: 'GET' }).handler(async () => {
+  const client = makeApi()
+  const res = await client.me.pets.$get({ query: {} })
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  const { items } = await res.json()
+  return items
+})
 
 export const listApplicationsFn = createServerFn({ method: 'GET' }).handler(
-  async () => api.listAdoptionApplications(),
+  async () => {
+    const client = makeApi()
+    const res = await client.me.applications.$get({ query: {} })
+    if (!res.ok) throw new Error(`API ${res.status}`)
+    const { items } = await res.json()
+    return items
+  },
 )
 
 const idInput = z.object({ id: z.string().min(1) })
 export const getApplicationFn = createServerFn({ method: 'GET' })
   .inputValidator((d: unknown) => idInput.parse(d))
-  .handler(async ({ data }) => api.getAdoptionApplication(data))
+  .handler(async ({ data }) => {
+    const client = makeApi()
+    const res = await client.me.applications[':id'].$get({
+      param: { id: data.id },
+    })
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error(`API ${res.status}`)
+    return res.json()
+  })
 
 const updateStatusInput = z.object({
   id: z.string().min(1),
-  status: adoptionStatusEnum,
-  notes: z.string().optional(),
-  notify: z.boolean().optional(),
-  actor: z.string().optional(),
+  status: applicationStatusEnum,
 })
 export const updateApplicationStatusFn = createServerFn({ method: 'POST' })
   .inputValidator((d: unknown) => updateStatusInput.parse(d))
-  .handler(async ({ data }) => api.updateAdoptionApplicationStatus(data))
-
-const createApplicationInput = z.object({
-  applicantName: z.string().min(1),
-  applicantEmail: z.string().email(),
-  petName: z.string().min(1),
-  petBreed: z.string().optional(),
-  petId: z.string().optional(),
-  notes: z.string().optional(),
-  actor: z.string().optional(),
-})
-export const createApplicationFn = createServerFn({ method: 'POST' })
-  .inputValidator((d: unknown) => createApplicationInput.parse(d))
-  .handler(async ({ data }) => api.createAdoptionApplication(data))
+  .handler(async ({ data }) => {
+    const client = makeApi()
+    const res = await client.me.applications[':id'].status.$patch({
+      param: { id: data.id },
+      json: { status: data.status },
+    })
+    if (!res.ok) throw new Error(`API ${res.status}`)
+    return res.json()
+  })

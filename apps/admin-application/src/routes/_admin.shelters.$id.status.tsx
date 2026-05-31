@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from '@tanstack/react-router'
+import { createFileRoute, Link, notFound, useRouter } from '@tanstack/react-router'
 import * as React from 'react'
 import {
   Ban,
@@ -9,8 +9,8 @@ import {
   Save,
 } from 'lucide-react'
 import { cn } from '@repo/ui'
-import type { ShelterStatus } from '@repo/domain'
-import { fetchShelter } from '#/lib/server-fns'
+import type { ShelterStatusType as ShelterStatus } from '@repo/data-utils/zod-schema/shelters'
+import { fetchShelter, updateShelterStatusFn } from '#/lib/server-fns'
 
 export const Route = createFileRoute('/_admin/shelters/$id/status')({
   loader: async ({ params }) => {
@@ -21,19 +21,17 @@ export const Route = createFileRoute('/_admin/shelters/$id/status')({
   component: ChangeStatusPage,
 })
 
+// Settable statuses via the admin status route — `pending` is not settable
+// (it's only the initial state on application).
+type SettableStatus = 'active' | 'suspended'
+
 const options: {
-  value: ShelterStatus
+  value: SettableStatus
   label: string
   hint: string
-  tone: 'primary' | 'warning' | 'alert'
+  tone: 'primary' | 'alert'
 }[] = [
   { value: 'active', label: 'Active', hint: 'Operational', tone: 'primary' },
-  {
-    value: 'pending',
-    label: 'Pending',
-    hint: 'Under Review / Missing Docs',
-    tone: 'warning',
-  },
   {
     value: 'suspended',
     label: 'Suspended',
@@ -44,9 +42,34 @@ const options: {
 
 function ChangeStatusPage() {
   const { shelter } = Route.useLoaderData()
-  const [selected, setSelected] = React.useState<ShelterStatus>(shelter.status)
+  const router = useRouter()
+  const [selected, setSelected] = React.useState<SettableStatus>(
+    shelter.status === 'suspended' ? 'suspended' : 'active',
+  )
   const [reason, setReason] = React.useState('')
   const [notify, setNotify] = React.useState(true)
+  const [saving, setSaving] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+
+  const save = async () => {
+    setSaving(true)
+    setError(null)
+    try {
+      await updateShelterStatusFn({
+        data: {
+          id: shelter.id,
+          status: selected,
+          reason: reason.trim() || undefined,
+          notify,
+        },
+      })
+      await router.invalidate()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update status.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="pb-12">
@@ -97,6 +120,7 @@ function ChangeStatusPage() {
             className="bg-surface-bright rounded-xl border border-border-light p-card-inner-padding shadow-soft"
             onSubmit={(e) => {
               e.preventDefault()
+              void save()
             }}
           >
             <h2 className="text-label-md text-on-surface-variant mb-4 uppercase tracking-wider">
@@ -147,19 +171,24 @@ function ChangeStatusPage() {
               <Switch checked={notify} onChange={setNotify} />
             </div>
 
+            {error ? (
+              <p className="text-body-sm text-alert mt-4">{error}</p>
+            ) : null}
+
             <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-border-light">
-              <button
-                type="button"
-                className="h-11 px-6 rounded-lg text-label-md border border-outline-variant text-on-surface-variant hover:bg-surface-container-low transition-colors"
+              <Link
+                to="/shelters"
+                className="h-11 px-6 inline-flex items-center rounded-lg text-label-md border border-outline-variant text-on-surface-variant hover:bg-surface-container-low transition-colors"
               >
                 Cancel
-              </button>
+              </Link>
               <button
                 type="submit"
-                className="h-11 px-6 rounded-lg text-label-md bg-primary text-on-primary hover:bg-primary-container transition-colors flex items-center gap-2"
+                disabled={saving}
+                className="h-11 px-6 rounded-lg text-label-md bg-primary text-on-primary hover:bg-primary-container transition-colors flex items-center gap-2 disabled:opacity-60"
               >
                 <Save className="size-4" />
-                Update Status
+                {saving ? 'Saving…' : 'Update Status'}
               </button>
             </div>
           </form>

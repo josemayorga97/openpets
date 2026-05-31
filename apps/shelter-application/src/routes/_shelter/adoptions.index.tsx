@@ -1,11 +1,8 @@
 import * as React from 'react'
-import { Link, createFileRoute, useRouter } from '@tanstack/react-router'
-import type { AdoptionApplication, AdoptionStatus } from '@repo/domain'
+import { Link, createFileRoute } from '@tanstack/react-router'
+import type { ApplicationStatusType } from '@repo/data-utils/zod-schema/applications'
 import { Icon } from '../../components/icon'
-import {
-  createApplicationFn,
-  listApplicationsFn,
-} from '../../lib/server-fns'
+import { listApplicationsFn } from '../../lib/server-fns'
 
 export const Route = createFileRoute('/_shelter/adoptions/')({
   loader: async () => {
@@ -16,20 +13,20 @@ export const Route = createFileRoute('/_shelter/adoptions/')({
 })
 
 const statusStyles: Record<
-  AdoptionStatus,
+  ApplicationStatusType,
   { dot: string; bg: string; text: string; label: string }
 > = {
-  review: {
+  submitted: {
+    dot: 'bg-outline-variant',
+    bg: 'bg-outline-variant/20 border-outline-variant/30',
+    text: 'text-on-surface-variant',
+    label: 'Submitted',
+  },
+  under_review: {
     dot: 'bg-status-warning',
     bg: 'bg-status-warning/10 border-status-warning/20',
     text: 'text-status-warning',
     label: 'Under Review',
-  },
-  pending: {
-    dot: 'bg-outline-variant',
-    bg: 'bg-outline-variant/20 border-outline-variant/30',
-    text: 'text-on-surface-variant',
-    label: 'Pending',
   },
   approved: {
     dot: 'bg-status-success',
@@ -37,23 +34,29 @@ const statusStyles: Record<
     text: 'text-status-success',
     label: 'Approved',
   },
-  more_info: {
-    dot: 'bg-status-alert',
-    bg: 'bg-status-alert/10 border-status-alert/20',
-    text: 'text-status-alert',
-    label: 'More Info',
-  },
-  declined: {
-    dot: 'bg-status-alert',
-    bg: 'bg-status-alert/10 border-status-alert/20',
-    text: 'text-status-alert',
-    label: 'Declined',
-  },
-  completed: {
+  finalized: {
     dot: 'bg-status-success',
     bg: 'bg-status-success/10 border-status-success/20',
     text: 'text-status-success',
-    label: 'Completed',
+    label: 'Finalized',
+  },
+  rejected: {
+    dot: 'bg-status-alert',
+    bg: 'bg-status-alert/10 border-status-alert/20',
+    text: 'text-status-alert',
+    label: 'Rejected',
+  },
+  withdrawn: {
+    dot: 'bg-outline',
+    bg: 'bg-outline-variant/20 border-outline-variant/30',
+    text: 'text-on-surface-variant',
+    label: 'Withdrawn',
+  },
+  superseded: {
+    dot: 'bg-outline',
+    bg: 'bg-outline-variant/20 border-outline-variant/30',
+    text: 'text-on-surface-variant',
+    label: 'Superseded',
   },
 }
 
@@ -76,9 +79,7 @@ function relativeDate(iso: string): string {
 
 function AdoptionsPage() {
   const { applications } = Route.useLoaderData()
-  const router = useRouter()
-  const [filter, setFilter] = React.useState<'all' | AdoptionStatus>('all')
-  const [open, setOpen] = React.useState(false)
+  const [filter, setFilter] = React.useState<'all' | ApplicationStatusType>('all')
 
   const filtered = React.useMemo(
     () =>
@@ -89,14 +90,13 @@ function AdoptionsPage() {
   )
 
   const totals = React.useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10)
     return {
       total: applications.length,
       pending: applications.filter(
-        (a) => a.status === 'review' || a.status === 'pending',
+        (a) => a.status === 'submitted' || a.status === 'under_review',
       ).length,
-      approvedToday: applications.filter(
-        (a) => a.status === 'approved' && a.timeline[0]?.at.startsWith(today),
+      approved: applications.filter(
+        (a) => a.status === 'approved' || a.status === 'finalized',
       ).length,
     }
   }, [applications])
@@ -112,14 +112,6 @@ function AdoptionsPage() {
             Review, process, and finalize incoming pet adoption applications.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-2 h-11 px-4 bg-primary text-on-primary rounded-md text-label-md hover:bg-primary/90 transition-colors shadow-sm"
-        >
-          <Icon name="add" className="text-[18px]" />
-          Add Applicant
-        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-card-gap mb-8">
@@ -137,8 +129,8 @@ function AdoptionsPage() {
           tone="warning"
         />
         <StatCard
-          label="Approved Today"
-          value={String(totals.approvedToday)}
+          label="Approved"
+          value={String(totals.approved)}
           suffix="processed"
           icon="check_circle"
           tone="success"
@@ -153,12 +145,13 @@ function AdoptionsPage() {
             className="w-full appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface text-body-sm rounded-md py-2.5 pl-4 pr-10 focus:outline-none focus:border-primary cursor-pointer shadow-sm"
           >
             <option value="all">All Statuses</option>
-            <option value="review">Under Review</option>
-            <option value="pending">Pending</option>
-            <option value="more_info">More Info</option>
+            <option value="submitted">Submitted</option>
+            <option value="under_review">Under Review</option>
             <option value="approved">Approved</option>
-            <option value="declined">Declined</option>
-            <option value="completed">Completed</option>
+            <option value="finalized">Finalized</option>
+            <option value="rejected">Rejected</option>
+            <option value="withdrawn">Withdrawn</option>
+            <option value="superseded">Superseded</option>
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-on-surface-variant">
             <Icon name="expand_more" className="text-[20px]" />
@@ -171,16 +164,14 @@ function AdoptionsPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-surface-muted bg-surface-bright/50">
-                {['Applicant Name', 'Pet Name', 'Date Submitted', 'Status'].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      className="py-4 px-6 text-label-sm text-on-surface-variant font-semibold tracking-wide"
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
+                {['Application', 'Pet', 'Date Submitted', 'Status'].map((h) => (
+                  <th
+                    key={h}
+                    className="py-4 px-6 text-label-sm text-on-surface-variant font-semibold tracking-wide"
+                  >
+                    {h}
+                  </th>
+                ))}
                 <th className="py-4 px-6 text-label-sm text-on-surface-variant font-semibold tracking-wide text-right">
                   Actions
                 </th>
@@ -200,25 +191,22 @@ function AdoptionsPage() {
                 filtered.map((a) => {
                   const s = statusStyles[a.status]
                   const cta =
-                    a.status === 'completed' ? 'View Details' : 'Review'
-                  const petLabel = a.petBreed
-                    ? `${a.petName} (${a.petBreed})`
-                    : a.petName
+                    a.status === 'finalized' ? 'View Details' : 'Review'
                   return (
                     <tr
                       key={a.id}
                       className="hover:bg-surface/50 transition-colors"
                     >
                       <td className="py-4 px-6">
-                        <div className="text-label-md text-on-surface">
-                          {a.applicantName}
+                        <div className="text-label-md text-on-surface font-mono">
+                          #{a.id}
                         </div>
-                        <div className="text-body-sm text-on-surface-variant">
-                          {a.applicantEmail}
+                        <div className="text-body-sm text-on-surface-variant font-mono">
+                          Applicant: {a.applicantId}
                         </div>
                       </td>
-                      <td className="py-4 px-6 text-body-md text-on-surface">
-                        {petLabel}
+                      <td className="py-4 px-6 text-body-md text-on-surface font-mono">
+                        {a.petId}
                       </td>
                       <td className="py-4 px-6 text-body-sm text-on-surface-variant">
                         {relativeDate(a.submittedAt)}
@@ -258,9 +246,6 @@ function AdoptionsPage() {
           ) : (
             filtered.map((a) => {
               const s = statusStyles[a.status]
-              const petLabel = a.petBreed
-                ? `${a.petName} · ${a.petBreed}`
-                : a.petName
               return (
                 <li key={a.id} className="relative">
                   <span
@@ -274,8 +259,8 @@ function AdoptionsPage() {
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2 mb-1">
-                        <div className="text-label-md text-on-surface truncate">
-                          {a.applicantName}
+                        <div className="text-label-md text-on-surface truncate font-mono">
+                          #{a.id}
                         </div>
                         <span
                           className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] leading-none border ${s.bg} ${s.text}`}
@@ -286,12 +271,10 @@ function AdoptionsPage() {
                           {s.label}
                         </span>
                       </div>
-                      <div className="text-body-sm text-on-surface truncate">
-                        {petLabel}
+                      <div className="text-body-sm text-on-surface truncate font-mono">
+                        Pet: {a.petId}
                       </div>
                       <div className="text-body-sm text-on-surface-variant truncate mt-0.5">
-                        {a.applicantEmail}
-                        <span className="mx-1.5 opacity-60">·</span>
                         {relativeDate(a.submittedAt)}
                       </div>
                     </div>
@@ -308,171 +291,11 @@ function AdoptionsPage() {
 
         <div className="border-t border-surface-muted bg-surface-container-lowest py-3 px-5 md:px-6 flex items-center justify-between">
           <p className="text-body-sm text-on-surface-variant">
-            Showing 1 to {filtered.length} of {applications.length} entries
+            Showing {filtered.length} of {applications.length} entries
           </p>
         </div>
       </div>
-
-      {open ? (
-        <AddApplicantDialog
-          onClose={() => setOpen(false)}
-          onCreated={async () => {
-            setOpen(false)
-            await router.invalidate()
-          }}
-        />
-      ) : null}
     </>
-  )
-}
-
-function AddApplicantDialog({
-  onClose,
-  onCreated,
-}: {
-  onClose: () => void
-  onCreated: (created: AdoptionApplication) => void
-}) {
-  const [form, setForm] = React.useState({
-    applicantName: '',
-    applicantEmail: '',
-    petName: '',
-    petBreed: '',
-    notes: '',
-  })
-  const [submitting, setSubmitting] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
-
-  const update = (key: keyof typeof form, v: string) =>
-    setForm((s) => ({ ...s, [key]: v }))
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
-    setError(null)
-    try {
-      const created = await createApplicationFn({
-        data: {
-          applicantName: form.applicantName.trim(),
-          applicantEmail: form.applicantEmail.trim(),
-          petName: form.petName.trim(),
-          petBreed: form.petBreed.trim() || undefined,
-          notes: form.notes.trim() || undefined,
-          actor: 'Shelter Staff',
-        },
-      })
-      onCreated(created)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save applicant.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/30 backdrop-blur-sm">
-      <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/60 shadow-xl w-full max-w-lg overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-muted">
-          <h2 className="text-title-lg text-on-surface">Add Applicant</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="text-on-surface-variant hover:text-on-surface"
-          >
-            <Icon name="close" />
-          </button>
-        </div>
-        <form onSubmit={submit} className="p-6 space-y-4">
-          <Field
-            label="Applicant Name"
-            value={form.applicantName}
-            onChange={(v) => update('applicantName', v)}
-            required
-          />
-          <Field
-            label="Applicant Email"
-            type="email"
-            value={form.applicantEmail}
-            onChange={(v) => update('applicantEmail', v)}
-            required
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <Field
-              label="Pet Name"
-              value={form.petName}
-              onChange={(v) => update('petName', v)}
-              required
-            />
-            <Field
-              label="Breed"
-              value={form.petBreed}
-              onChange={(v) => update('petBreed', v)}
-            />
-          </div>
-          <div>
-            <label className="block text-label-sm text-on-surface-variant mb-1.5">
-              Notes (optional)
-            </label>
-            <textarea
-              value={form.notes}
-              onChange={(e) => update('notes', e.target.value)}
-              rows={3}
-              className="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-primary"
-            />
-          </div>
-          {error ? (
-            <p className="text-body-sm text-status-alert">{error}</p>
-          ) : null}
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="h-10 px-4 rounded-md border border-outline-variant text-on-surface-variant hover:bg-surface-container-low text-label-md"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="h-10 px-4 rounded-md bg-primary text-on-primary text-label-md hover:bg-primary/90 disabled:opacity-60"
-            >
-              {submitting ? 'Saving…' : 'Add Applicant'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  type = 'text',
-  required,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  type?: string
-  required?: boolean
-}) {
-  return (
-    <div>
-      <label className="block text-label-sm text-on-surface-variant mb-1.5">
-        {label}
-        {required ? <span className="text-status-alert ml-0.5">*</span> : null}
-      </label>
-      <input
-        type={type}
-        value={value}
-        required={required}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-primary"
-      />
-    </div>
   )
 }
 

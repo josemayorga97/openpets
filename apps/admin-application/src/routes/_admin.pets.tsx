@@ -11,13 +11,21 @@ import {
   Stethoscope,
 } from 'lucide-react'
 import { cn } from '@repo/ui'
-import type { Pet, PetStatus } from '@repo/domain'
+import type { PublicPet } from '@repo/api-client'
 import { fetchAdminPets, fetchShelters } from '#/lib/server-fns'
+
+type Pet = PublicPet
+type PetStatus = PublicPet['status']
 
 export const Route = createFileRoute('/_admin/pets')({
   loader: async () => {
-    const [pets, shelters] = await Promise.all([fetchAdminPets(), fetchShelters()])
+    // No cross-shelter pets route — fan out per shelter and merge.
+    const shelters = await fetchShelters()
     const shelterNamesById = Object.fromEntries(shelters.map((s) => [s.id, s.name]))
+    const petLists = await Promise.all(
+      shelters.map((s) => fetchAdminPets({ data: { shelterId: s.id } })),
+    )
+    const pets = petLists.flat()
     return { pets, shelterNamesById }
   },
   component: PetsPage,

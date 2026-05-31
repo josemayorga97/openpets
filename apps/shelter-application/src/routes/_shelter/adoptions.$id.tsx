@@ -5,11 +5,7 @@ import {
   notFound,
   useRouter,
 } from '@tanstack/react-router'
-import type {
-  AdoptionApplication,
-  AdoptionStatus,
-  AdoptionTimelineEntry,
-} from '@repo/domain'
+import type { ApplicationStatusType } from '@repo/data-utils/zod-schema/applications'
 import { Icon } from '../../components/icon'
 import {
   getApplicationFn,
@@ -25,21 +21,23 @@ export const Route = createFileRoute('/_shelter/adoptions/$id')({
   component: ReviewApplicationPage,
 })
 
+type Application = NonNullable<Awaited<ReturnType<typeof getApplicationFn>>>
+
 const currentStatusStyle: Record<
-  AdoptionStatus,
+  ApplicationStatusType,
   { iconBg: string; icon: string; iconColor: string; label: string }
 > = {
-  pending: {
+  submitted: {
     iconBg: 'bg-status-warning/15',
     iconColor: 'text-status-warning',
     icon: 'pending_actions',
-    label: 'Pending',
+    label: 'Submitted',
   },
-  review: {
+  under_review: {
     iconBg: 'bg-status-warning/15',
     iconColor: 'text-status-warning',
     icon: 'pending_actions',
-    label: 'Pending Review',
+    label: 'Under Review',
   },
   approved: {
     iconBg: 'bg-status-success/15',
@@ -47,35 +45,47 @@ const currentStatusStyle: Record<
     icon: 'check_circle',
     label: 'Approved',
   },
-  more_info: {
-    iconBg: 'bg-status-alert/15',
-    iconColor: 'text-status-alert',
-    icon: 'help',
-    label: 'More Info Requested',
-  },
-  declined: {
-    iconBg: 'bg-status-alert/15',
-    iconColor: 'text-status-alert',
-    icon: 'cancel',
-    label: 'Declined',
-  },
-  completed: {
+  finalized: {
     iconBg: 'bg-status-success/15',
     iconColor: 'text-status-success',
     icon: 'task_alt',
-    label: 'Completed',
+    label: 'Finalized',
+  },
+  rejected: {
+    iconBg: 'bg-status-alert/15',
+    iconColor: 'text-status-alert',
+    icon: 'cancel',
+    label: 'Rejected',
+  },
+  withdrawn: {
+    iconBg: 'bg-outline-variant/30',
+    iconColor: 'text-on-surface-variant',
+    icon: 'undo',
+    label: 'Withdrawn',
+  },
+  superseded: {
+    iconBg: 'bg-outline-variant/30',
+    iconColor: 'text-on-surface-variant',
+    icon: 'history',
+    label: 'Superseded',
   },
 }
 
-type ChoiceStatus = 'approved' | 'more_info' | 'declined'
-
+// The transitions a reviewer can apply from this screen.
 const statusChoices: Array<{
-  value: ChoiceStatus
+  value: ApplicationStatusType
   title: string
   hint: string
   icon: string
   iconColor: string
 }> = [
+  {
+    value: 'under_review',
+    title: 'Mark Under Review',
+    hint: 'Application is being evaluated.',
+    icon: 'pending_actions',
+    iconColor: 'text-status-warning',
+  },
   {
     value: 'approved',
     title: 'Approve Adoption',
@@ -84,32 +94,20 @@ const statusChoices: Array<{
     iconColor: 'text-status-success',
   },
   {
-    value: 'more_info',
-    title: 'Request More Info',
-    hint: 'Missing telephone contact or vet records.',
-    icon: 'help',
-    iconColor: 'text-on-surface-variant',
+    value: 'finalized',
+    title: 'Finalize',
+    hint: 'Adoption is complete.',
+    icon: 'task_alt',
+    iconColor: 'text-status-success',
   },
   {
-    value: 'declined',
-    title: 'Decline',
+    value: 'rejected',
+    title: 'Reject',
     hint: 'Applicant does not meet criteria.',
     icon: 'cancel',
     iconColor: 'text-status-alert',
   },
 ]
-
-function formatDateTime(iso: string): string {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-}
 
 function formatShortDate(iso: string): string {
   const d = new Date(iso)
@@ -124,17 +122,9 @@ function formatShortDate(iso: string): string {
 function ReviewApplicationPage() {
   const { application } = Route.useLoaderData()
   const router = useRouter()
-  const [selected, setSelected] = React.useState<ChoiceStatus>(
-    application.status === 'approved'
-      ? 'approved'
-      : application.status === 'declined'
-        ? 'declined'
-        : application.status === 'more_info'
-          ? 'more_info'
-          : 'more_info',
+  const [selected, setSelected] = React.useState<ApplicationStatusType>(
+    application.status,
   )
-  const [notes, setNotes] = React.useState(application.notes ?? '')
-  const [notify, setNotify] = React.useState(application.notify ?? true)
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -148,9 +138,6 @@ function ReviewApplicationPage() {
         data: {
           id: application.id,
           status: selected,
-          notes: notes.trim() || undefined,
-          notify,
-          actor: 'System Admin',
         },
       })
       await router.invalidate()
@@ -170,15 +157,19 @@ function ReviewApplicationPage() {
           Review Adoption Application
         </h1>
         <p className="text-body-md text-on-surface-variant">
-          Reviewing application for{' '}
-          <span className="font-semibold text-on-surface">
-            {application.applicantName}
+          Application{' '}
+          <span className="font-mono font-semibold text-on-surface">
+            #{application.id}
           </span>{' '}
-          to adopt{' '}
-          <span className="font-semibold text-on-surface">
-            &lsquo;{application.petName}&rsquo;
+          — applicant{' '}
+          <span className="font-mono font-semibold text-on-surface">
+            {application.applicantId}
+          </span>{' '}
+          for pet{' '}
+          <span className="font-mono font-semibold text-on-surface">
+            {application.petId}
           </span>
-          {application.petBreed ? ` the ${application.petBreed}` : null}.
+          .
         </p>
       </div>
 
@@ -198,9 +189,11 @@ function ReviewApplicationPage() {
               </div>
               <div className="flex-1">
                 <p className="text-title-lg text-on-surface">{status.label}</p>
-                <p className="text-body-sm text-on-surface-variant mt-1">
-                  Application received. Background check in progress.
-                </p>
+                {application.notes ? (
+                  <p className="text-body-sm text-on-surface-variant mt-1">
+                    {application.notes}
+                  </p>
+                ) : null}
               </div>
               <div className="text-right">
                 <p className="text-label-sm text-on-surface-variant uppercase tracking-wider">
@@ -259,36 +252,6 @@ function ReviewApplicationPage() {
             </div>
           </section>
 
-          <section>
-            <SectionLabel>Reviewer Notes</SectionLabel>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={4}
-              placeholder="Enter administrative notes regarding this status change…"
-              className="w-full bg-surface-container-lowest border border-outline-variant/60 rounded-lg px-4 py-3 text-body-md text-on-surface focus:outline-none focus:border-primary shadow-[0_2px_8px_rgba(0,0,0,0.04)] resize-none"
-            />
-            <p className="mt-2 text-body-sm text-on-surface-variant">
-              This note will be logged in the application history.
-            </p>
-          </section>
-
-          <section className="bg-surface-container-lowest border border-outline-variant/50 rounded-lg p-4 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-            <div>
-              <p className="text-label-md text-on-surface">
-                Notify Applicant via Email
-              </p>
-              <p className="text-body-sm text-on-surface-variant mt-0.5">
-                Send an automated notification to {application.applicantName}.
-              </p>
-            </div>
-            <Toggle
-              checked={notify}
-              onChange={setNotify}
-              label="Notify applicant via email"
-            />
-          </section>
-
           {error ? (
             <p className="text-body-sm text-status-alert">{error}</p>
           ) : null}
@@ -303,7 +266,7 @@ function ReviewApplicationPage() {
             <button
               type="button"
               onClick={save}
-              disabled={saving}
+              disabled={saving || selected === application.status}
               className="h-11 px-5 rounded-md bg-primary text-on-primary text-label-md hover:bg-primary/90 disabled:opacity-60"
             >
               {saving ? 'Saving…' : 'Confirm Status Change'}
@@ -312,9 +275,27 @@ function ReviewApplicationPage() {
         </div>
 
         <aside className="space-y-3">
-          <SectionLabel>Timeline</SectionLabel>
-          <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/50 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-5">
-            <Timeline entries={application.timeline} />
+          <SectionLabel>Details</SectionLabel>
+          <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/50 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-5 space-y-3">
+            <DetailRow label="Application ID" value={application.id} mono />
+            <DetailRow label="Pet ID" value={application.petId} mono />
+            <DetailRow label="Applicant ID" value={application.applicantId} mono />
+            <DetailRow
+              label="Submitted"
+              value={formatShortDate(application.submittedAt)}
+            />
+            {application.decidedAt ? (
+              <DetailRow
+                label="Decided"
+                value={formatShortDate(application.decidedAt)}
+              />
+            ) : null}
+            {application.finalizedAt ? (
+              <DetailRow
+                label="Finalized"
+                value={formatShortDate(application.finalizedAt)}
+              />
+            ) : null}
           </div>
         </aside>
       </div>
@@ -322,7 +303,7 @@ function ReviewApplicationPage() {
   )
 }
 
-function Breadcrumbs({ application }: { application: AdoptionApplication }) {
+function Breadcrumbs({ application }: { application: Application }) {
   return (
     <nav className="mb-6 text-body-sm text-on-surface-variant flex items-center gap-2">
       <Link to="/dashboard" className="hover:text-primary">
@@ -347,65 +328,23 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   )
 }
 
-function Toggle({
-  checked,
-  onChange,
+function DetailRow({
   label,
+  value,
+  mono,
 }: {
-  checked: boolean
-  onChange: (v: boolean) => void
   label: string
+  value: string
+  mono?: boolean
 }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className={`relative w-11 h-6 rounded-full transition-colors ${
-        checked ? 'bg-primary' : 'bg-outline-variant'
-      }`}
-    >
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-label-sm text-on-surface-variant">{label}</span>
       <span
-        className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-surface-container-lowest shadow transition-transform ${
-          checked ? 'translate-x-5' : ''
-        }`}
-      />
-    </button>
-  )
-}
-
-function Timeline({ entries }: { entries: AdoptionTimelineEntry[] }) {
-  if (entries.length === 0) {
-    return (
-      <p className="text-body-sm text-on-surface-variant">
-        No timeline entries yet.
-      </p>
-    )
-  }
-  return (
-    <ol className="relative space-y-5">
-      {entries.map((e, i) => (
-        <li key={e.id} className="relative pl-7">
-          <span className="absolute left-0 top-1 w-3 h-3 rounded-full bg-primary ring-4 ring-primary/15" />
-          {i < entries.length - 1 ? (
-            <span className="absolute left-[5px] top-5 bottom-[-1.25rem] w-px bg-outline-variant/60" />
-          ) : null}
-          <p className="text-label-sm text-on-surface-variant">
-            {formatDateTime(e.at)}
-          </p>
-          <p className="text-label-md text-on-surface mt-0.5">{e.title}</p>
-          {e.detail ? (
-            <p className="text-body-sm text-on-surface-variant mt-1">
-              {e.detail}
-            </p>
-          ) : null}
-          <p className="text-body-sm text-on-surface-variant/80 mt-1.5 italic">
-            {e.actor}
-          </p>
-        </li>
-      ))}
-    </ol>
+        className={`text-body-sm text-on-surface ${mono ? 'font-mono' : ''}`}
+      >
+        {value}
+      </span>
+    </div>
   )
 }

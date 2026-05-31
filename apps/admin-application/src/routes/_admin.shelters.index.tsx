@@ -11,13 +11,23 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import { cn } from '@repo/ui'
-import type { ShelterStatus } from '@repo/domain'
+import type { ShelterStatusType as ShelterStatus } from '@repo/data-utils/zod-schema/shelters'
 import { fetchShelters } from '#/lib/server-fns'
 
 export const Route = createFileRoute('/_admin/shelters/')({
   loader: () => fetchShelters(),
   component: SheltersPage,
 })
+
+function formatDate(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
 
 function SheltersPage() {
   const shelters = Route.useLoaderData()
@@ -101,10 +111,10 @@ function SheltersPage() {
             <thead>
               <tr className="bg-surface-bright border-b border-border-light">
                 <Th>Shelter Name</Th>
-                <Th>Contact Person</Th>
+                <Th>Contact</Th>
                 <Th>Status</Th>
-                <Th className="text-right">Registered Pets</Th>
-                <Th>Last Activity</Th>
+                <Th>Location</Th>
+                <Th>Applied</Th>
                 <Th className="text-center">Actions</Th>
               </tr>
             </thead>
@@ -120,21 +130,21 @@ function SheltersPage() {
                         {s.name}
                       </span>
                       <span className="text-label-sm text-on-surface-variant">
-                        {s.district}
+                        {s.slug}
                       </span>
                     </div>
                   </td>
                   <td className="p-4 text-body-sm text-on-surface">
-                    {s.contact}
+                    {s.email ?? s.phone ?? '—'}
                   </td>
                   <td className="p-4">
                     <StatusPill status={s.status} />
                   </td>
-                  <td className="p-4 text-body-sm text-on-surface text-right">
-                    {s.pets}
+                  <td className="p-4 text-body-sm text-on-surface-variant">
+                    {s.city}, {s.region}
                   </td>
                   <td className="p-4 text-body-sm text-on-surface-variant">
-                    {s.lastActivity}
+                    {formatDate(s.appliedAt)}
                   </td>
                   <td className="p-4">
                     <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -1,11 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import {
   Building2,
-  Heart,
-  PawPrint,
+  CheckCircle2,
+  ClipboardList,
   ShieldCheck,
   TrendingUp,
-  MoreVertical,
 } from 'lucide-react'
 import { cn } from '@repo/ui'
 import { fetchDashboard } from '#/lib/server-fns'
@@ -15,9 +14,18 @@ export const Route = createFileRoute('/_admin/')({
   component: DashboardPage,
 })
 
+function formatDate(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
 function DashboardPage() {
-  const { metrics: dashboardMetrics, populationByRegion, pendingShelters: pending } =
-    Route.useLoaderData()
+  const { counts, pendingShelters: pending } = Route.useLoaderData()
 
   return (
     <div className="flex flex-col gap-section-gap pb-12">
@@ -32,14 +40,13 @@ function DashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
         <MetricCard
-          label="Total Pets"
-          value={dashboardMetrics.totalPets.toLocaleString()}
-          icon={PawPrint}
-          trend={{ value: dashboardMetrics.totalPetsTrend, positive: true }}
+          label="Total Shelters"
+          value={String(counts.total)}
+          icon={Building2}
         />
         <MetricCard
           label="Pending Approvals"
-          value={String(dashboardMetrics.pendingApprovals)}
+          value={String(counts.pending)}
           icon={ShieldCheck}
           highlight
           subtitle="Requires Action"
@@ -47,21 +54,19 @@ function DashboardPage() {
         />
         <MetricCard
           label="Active Shelters"
-          value={String(dashboardMetrics.activeShelters)}
-          icon={Building2}
-          subtitle={`Across ${dashboardMetrics.regions} regions`}
+          value={String(counts.active)}
+          icon={CheckCircle2}
+          iconTone="success"
         />
         <MetricCard
-          label="Adoption Rate"
-          value={`${dashboardMetrics.adoptionRate}%`}
-          icon={Heart}
-          iconTone="success"
-          trend={{ value: dashboardMetrics.adoptionRateTrend, positive: true }}
+          label="Suspended"
+          value={String(counts.suspended)}
+          icon={ClipboardList}
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-        <section className="lg:col-span-8 glass-card rounded-xl overflow-hidden flex flex-col">
+        <section className="lg:col-span-12 glass-card rounded-xl overflow-hidden flex flex-col">
           <div className="px-card-inner-padding py-4 border-b border-border-light flex justify-between items-center">
             <h3 className="font-display text-headline-md text-on-surface">
               Pending Shelter Approvals
@@ -100,10 +105,10 @@ function DashboardPage() {
                       </div>
                     </td>
                     <td className="px-card-inner-padding py-4 text-on-surface-variant">
-                      {s.location}
+                      {s.city}, {s.region}
                     </td>
                     <td className="px-card-inner-padding py-4 text-on-surface-variant">
-                      {s.appliedAt}
+                      {formatDate(s.appliedAt)}
                     </td>
                     <td className="px-card-inner-padding py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -126,61 +131,6 @@ function DashboardPage() {
                 ))}
               </tbody>
             </table>
-          </div>
-        </section>
-
-        <section className="lg:col-span-4 glass-card rounded-xl p-card-inner-padding flex flex-col">
-          <div className="mb-6 flex justify-between items-center">
-            <h3 className="font-display text-headline-md text-on-surface">
-              Population Density
-            </h3>
-            <button
-              type="button"
-              className="text-on-surface-variant p-1 hover:bg-surface-container-low rounded"
-            >
-              <MoreVertical className="size-5" />
-            </button>
-          </div>
-          <div className="flex-1 flex items-end gap-3 h-48 pb-4 border-b border-border-light pt-8">
-            {populationByRegion.map((r, i) => {
-              const isPeak = r.percent === Math.max(...populationByRegion.map((x) => x.percent))
-              return (
-                <div
-                  key={r.label}
-                  className="flex-1 flex flex-col justify-end items-center group"
-                >
-                  <div
-                    className={cn(
-                      'w-full rounded-t-sm transition-colors relative',
-                      isPeak
-                        ? 'bg-primary shadow-sm'
-                        : i % 2 === 0
-                          ? 'bg-primary/30 group-hover:bg-primary/50'
-                          : 'bg-primary/40 group-hover:bg-primary/60',
-                    )}
-                    style={{ height: `${r.percent}%` }}
-                  >
-                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 text-label-sm text-primary transition-opacity bg-surface-container-lowest px-2 py-1 rounded shadow-sm border border-border-light whitespace-nowrap">
-                      {r.value}
-                    </div>
-                  </div>
-                  <span
-                    className={cn(
-                      'text-[10px] mt-2 truncate w-full text-center',
-                      isPeak
-                        ? 'font-bold text-primary'
-                        : 'text-on-surface-variant',
-                    )}
-                  >
-                    {r.label}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-          <div className="mt-4 flex items-center justify-between text-label-sm text-on-surface-variant">
-            <span>Distribution by Region</span>
-            <button className="text-primary hover:underline">View Report</button>
           </div>
         </section>
       </div>

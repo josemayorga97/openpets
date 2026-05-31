@@ -1,8 +1,19 @@
 import { Star } from 'lucide-react'
-import type { SuccessStory as SuccessStoryT } from '@repo/domain'
+
+// Local prop type — the component is retained for a later backend buildout of
+// success stories, but no longer depends on the deleted @repo/domain package.
+export interface SuccessStory {
+  quote: string
+  body: string
+  adopterNames: string
+  adopterInitials: string
+  petName: string
+  year: number | string
+  photo: string
+}
 
 export interface SuccessStoryProps {
-  story: SuccessStoryT
+  story: SuccessStory
 }
 
 export function SuccessStory({ story }: SuccessStoryProps) {

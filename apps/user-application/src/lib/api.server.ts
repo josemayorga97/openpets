@@ -1,14 +1,12 @@
 import { env } from 'cloudflare:workers'
-import { hc } from 'hono/client'
-import type { AppType } from '@repo/api-service/app-type'
+import { createApiClient } from '@repo/api-client'
 import { getRequestHeaders } from '@tanstack/react-start/server'
 
 /**
- * Typed Hono RPC client for the api-service Worker, reached over the
- * `API_SERVICE` service binding (see wrangler.jsonc). The host in the URL is
- * arbitrary — the binding routes by Fetcher, not by hostname — so we use a
- * stable placeholder. The caller's cookie is forwarded so authenticated
- * endpoints see the session.
+ * Builds the typed Hono RPC client for the api-service Worker. This app owns
+ * the `API_SERVICE` service binding (see wrangler.jsonc), so it injects that
+ * binding into the client and forwards the caller's session cookie — extracted
+ * from the current request — so authenticated endpoints see the session.
  */
 export function makeApi() {
   const headers = getRequestHeaders()
@@ -19,9 +17,5 @@ export function makeApi() {
       ? (headers as { get: (k: string) => string | null }).get('cookie') ?? ''
       : '')
 
-  return hc<AppType>('http://api-service', {
-    fetch: (input: RequestInfo | URL, init?: RequestInit) =>
-      env.API_SERVICE.fetch(input as Request, init),
-    headers: { cookie },
-  })
+  return createApiClient({ service: env.API_SERVICE, cookie })
 }

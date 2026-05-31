@@ -5,22 +5,34 @@ import { z } from 'zod'
 import {
   ageEnum,
   genderEnum,
-  petStatusEnum,
-  petTypeEnum,
+  speciesEnum,
   sizeEnum,
-  type AgeBucket,
-  type Gender,
-  type PetStatus,
-  type PetType,
-  type Size,
-} from '@repo/domain'
-import { useSession } from '@repo/auth'
+  type AgeType as AgeBucket,
+  type GenderType as Gender,
+  type SpeciesType as Species,
+  type SizeType as Size,
+  type ListingStatusType,
+  type AdoptionStatusType,
+} from '@repo/data-utils/zod-schema/pets'
 import { Icon } from '../../components/icon'
 import { createPetFn } from '../../lib/server-fns'
 
 export const Route = createFileRoute('/_shelter/listings/new')({
   component: NewListingPage,
 })
+
+// UI-level status the operator picks; translated to the backend's two columns
+// (listingStatus + adoptionStatus) on submit.
+type PetStatus = 'available' | 'medical' | 'adopted'
+
+const STATUS_MAP: Record<
+  PetStatus,
+  { listingStatus: ListingStatusType; adoptionStatus: AdoptionStatusType }
+> = {
+  available: { listingStatus: 'listed', adoptionStatus: 'available' },
+  medical: { listingStatus: 'medical_hold', adoptionStatus: 'available' },
+  adopted: { listingStatus: 'unlisted', adoptionStatus: 'adopted' },
+}
 
 const schema = z.object({
   name: z.string().trim().min(1, 'Give them a name'),
@@ -31,16 +43,14 @@ const schema = z.object({
   gender: genderEnum,
   size: sizeEnum,
   city: z.string().trim().min(1, 'City is required'),
-  state: z.string().trim().min(2, 'State is required'),
-  zip: z.string().trim().optional(),
+  region: z.string().trim().min(2, 'State / region is required'),
+  countryCode: z.string().trim().min(2, 'Country is required'),
+  postalCode: z.string().trim().optional(),
   description: z
     .string()
     .trim()
     .min(40, 'Tell their story — at least 40 characters'),
-  photoUrl: z.string().trim().optional(),
-  outOfTown: z.boolean(),
-  transportAvailable: z.boolean(),
-  status: petStatusEnum,
+  status: z.enum(['available', 'medical', 'adopted']),
 })
 
 type Values = z.infer<typeof schema>
@@ -54,12 +64,10 @@ const defaults: Values = {
   gender: 'female',
   size: 'medium',
   city: '',
-  state: '',
-  zip: '',
+  region: '',
+  countryCode: 'US',
+  postalCode: '',
   description: '',
-  photoUrl: '',
-  outOfTown: false,
-  transportAvailable: false,
   status: 'available',
 }
 
@@ -116,7 +124,6 @@ const statusOptions: Array<{
 
 function NewListingPage() {
   const navigate = useNavigate()
-  const session = useSession()
   const [submitError, setSubmitError] = React.useState<string | null>(null)
 
   const form = useForm({
@@ -127,6 +134,7 @@ function NewListingPage() {
     onSubmit: async ({ value }) => {
       setSubmitError(null)
       try {
+        const { listingStatus, adoptionStatus } = STATUS_MAP[value.status]
         await createPetFn({
           data: {
             name: value.name.trim(),
@@ -136,21 +144,13 @@ function NewListingPage() {
             ageLabel: value.ageLabel.trim(),
             gender: value.gender,
             size: value.size,
-            location: {
-              city: value.city.trim(),
-              state: value.state.trim(),
-              zip: value.zip?.trim() || undefined,
-            },
-            photos: value.photoUrl?.trim() ? [value.photoUrl.trim()] : [],
+            city: value.city.trim(),
+            region: value.region.trim(),
+            countryCode: value.countryCode.trim(),
+            postalCode: value.postalCode?.trim() || undefined,
             description: value.description.trim(),
-            outOfTown: value.outOfTown,
-            transportAvailable: value.transportAvailable,
-            shelterId:
-              session.status === 'authed'
-                ? (session.user as { shelterId?: string })?.shelterId ??
-                  'shelter-1'
-                : 'shelter-1',
-            status: value.status,
+            listingStatus,
+            adoptionStatus,
           },
         })
         await navigate({ to: '/listings' })
@@ -371,9 +371,9 @@ function NewListingPage() {
           <Section
             num="03"
             title="Whereabouts"
-            blurb="Where they are and how they get to a new home."
+            blurb="Where they are located."
           >
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px_140px] gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px_120px_140px] gap-5">
               <form.Field name="city">
                 {(field) => (
                   <FieldShell label="City" required field={field}>
@@ -387,7 +387,7 @@ function NewListingPage() {
                   </FieldShell>
                 )}
               </form.Field>
-              <form.Field name="state">
+              <form.Field name="region">
                 {(field) => (
                   <FieldShell label="State" required field={field}>
                     <input
@@ -397,15 +397,30 @@ function NewListingPage() {
                       }
                       onBlur={field.handleBlur}
                       placeholder="WA"
+                      className={`${inputCls} uppercase tracking-widest`}
+                    />
+                  </FieldShell>
+                )}
+              </form.Field>
+              <form.Field name="countryCode">
+                {(field) => (
+                  <FieldShell label="Country" required field={field}>
+                    <input
+                      value={field.state.value}
+                      onChange={(e) =>
+                        field.handleChange(e.target.value.toUpperCase())
+                      }
+                      onBlur={field.handleBlur}
+                      placeholder="US"
                       maxLength={2}
                       className={`${inputCls} uppercase tracking-widest`}
                     />
                   </FieldShell>
                 )}
               </form.Field>
-              <form.Field name="zip">
+              <form.Field name="postalCode">
                 {(field) => (
-                  <FieldShell label="ZIP" field={field}>
+                  <FieldShell label="Postal code" field={field}>
                     <input
                       value={field.state.value ?? ''}
                       onChange={(e) => field.handleChange(e.target.value)}
@@ -417,62 +432,13 @@ function NewListingPage() {
                 )}
               </form.Field>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <form.Field name="outOfTown">
-                {(field) => (
-                  <ToggleCard
-                    icon="travel"
-                    title="Out of town"
-                    blurb="They're currently fostered outside the metro area."
-                    checked={field.state.value}
-                    onChange={field.handleChange}
-                  />
-                )}
-              </form.Field>
-              <form.Field name="transportAvailable">
-                {(field) => (
-                  <ToggleCard
-                    icon="local_shipping"
-                    title="Transport available"
-                    blurb="Volunteers can drive them to a new home."
-                    checked={field.state.value}
-                    onChange={field.handleChange}
-                  />
-                )}
-              </form.Field>
-            </div>
           </Section>
 
           <Section
             num="04"
-            title="Image & status"
-            blurb="One hero photo. Choose what happens to the listing on save."
+            title="Status"
+            blurb="Choose what happens to the listing on save. Photo upload comes next, after the listing is created."
           >
-            <form.Field name="photoUrl">
-              {(field) => (
-                <FieldShell
-                  label="Hero photo URL"
-                  field={field}
-                  hint="Paste a URL or path. Upload coming soon."
-                >
-                  <div className="relative">
-                    <Icon
-                      name="image"
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-outline text-[20px]"
-                    />
-                    <input
-                      value={field.state.value ?? ''}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder="https://… or /pet-images/bella.jpg"
-                      className={`${inputCls} pl-11`}
-                    />
-                  </div>
-                </FieldShell>
-              )}
-            </form.Field>
-
             <form.Field name="status">
               {(field) => (
                 <FieldShell label="Save as" required field={field}>
@@ -670,64 +636,9 @@ function SegmentedGroup<T extends string>({
   )
 }
 
-function ToggleCard({
-  icon,
-  title,
-  blurb,
-  checked,
-  onChange,
-}: {
-  icon: string
-  title: string
-  blurb: string
-  checked: boolean
-  onChange: (val: boolean) => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className={`text-left p-4 rounded-md border flex gap-3 items-start transition-all ${
-        checked
-          ? 'border-primary bg-primary/5'
-          : 'border-outline-variant bg-surface-container-lowest hover:border-primary/40'
-      }`}
-    >
-      <span
-        className={`w-9 h-9 rounded-sm flex items-center justify-center shrink-0 ${
-          checked
-            ? 'bg-primary text-on-primary'
-            : 'bg-surface-container-high text-on-surface-variant'
-        }`}
-      >
-        <Icon name={icon} className="text-[18px]" fill={checked} />
-      </span>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-label-md text-on-background">{title}</span>
-          <span
-            className={`w-9 h-5 rounded-full relative transition-colors ${
-              checked ? 'bg-primary' : 'bg-outline-variant'
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${
-                checked ? 'left-[18px]' : 'left-0.5'
-              }`}
-            />
-          </span>
-        </div>
-        <p className="text-label-sm text-on-surface-variant mt-1 leading-snug">
-          {blurb}
-        </p>
-      </div>
-    </button>
-  )
-}
-
 function PreviewCard({ values }: { values: Values }) {
   const status = statusOptions.find((s) => s.value === values.status) ?? statusOptions[0]
-  const typeMeta = typeOptions.find((t) => t.value === values.type)
+  const speciesMeta = speciesOptions.find((t) => t.value === values.species)
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-label-sm uppercase tracking-[0.18em] text-on-surface-variant">
@@ -736,21 +647,10 @@ function PreviewCard({ values }: { values: Values }) {
       </div>
       <div className="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-[0_24px_48px_-24px_rgba(0,67,77,0.25)]">
         <div className="h-56 w-full relative overflow-hidden bg-gradient-to-br from-primary/10 via-surface-variant to-secondary/10 flex items-center justify-center">
-          {values.photoUrl ? (
-            <img
-              src={values.photoUrl}
-              alt={values.name || 'Pet preview'}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                ;(e.target as HTMLImageElement).style.display = 'none'
-              }}
-            />
-          ) : (
-            <div className="flex flex-col items-center gap-2 text-on-surface-variant/60">
-              <Icon name={typeMeta?.icon ?? 'pets'} className="text-[56px]" />
-              <span className="text-label-sm">Photo will appear here</span>
-            </div>
-          )}
+          <div className="flex flex-col items-center gap-2 text-on-surface-variant/60">
+            <Icon name={speciesMeta?.icon ?? 'pets'} className="text-[56px]" />
+            <span className="text-label-sm">Photo added after saving</span>
+          </div>
           <div
             className={`absolute top-3 left-3 px-3 py-1 bg-surface-container-lowest/95 backdrop-blur-sm rounded-full border border-outline-variant flex items-center gap-1.5`}
           >
@@ -759,12 +659,6 @@ function PreviewCard({ values }: { values: Values }) {
               {status.label}
             </span>
           </div>
-          {values.transportAvailable ? (
-            <div className="absolute top-3 right-3 px-2.5 py-1 bg-primary/90 text-on-primary rounded-full text-label-sm flex items-center gap-1">
-              <Icon name="local_shipping" className="text-[14px]" />
-              Transport
-            </div>
-          ) : null}
         </div>
         <div className="p-5">
           <div className="flex items-baseline justify-between gap-3 mb-1">
@@ -776,7 +670,7 @@ function PreviewCard({ values }: { values: Values }) {
             </span>
           </div>
           <p className="text-body-sm text-on-surface-variant capitalize">
-            {[values.type, values.breed, values.gender]
+            {[values.species, values.breed, values.gender]
               .filter(Boolean)
               .join(' · ') || 'No details yet'}
           </p>
@@ -784,7 +678,7 @@ function PreviewCard({ values }: { values: Values }) {
             <span className="flex items-center gap-1">
               <Icon name="location_on" className="text-[14px]" />
               {values.city
-                ? `${values.city}${values.state ? ', ' + values.state : ''}`
+                ? `${values.city}${values.region ? ', ' + values.region : ''}`
                 : 'Location'}
             </span>
             <span className="capitalize">{values.size}</span>

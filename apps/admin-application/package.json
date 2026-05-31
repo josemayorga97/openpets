@@ -32,9 +32,8 @@
 		"react-dom": "^19.2.0",
 		"tailwindcss": "^4.1.18",
 		"@repo/ui": "workspace:^",
-		"@repo/domain": "workspace:^",
+		"@repo/data-utils": "workspace:*",
 		"@repo/api-client": "workspace:^",
-		"@repo/mock-data": "workspace:^",
 		"@repo/auth": "workspace:^",
 		"zod": "^4.4.3"
 	},

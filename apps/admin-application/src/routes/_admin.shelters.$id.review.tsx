@@ -66,7 +66,7 @@ function ShelterReviewPage() {
               <Field
                 label="Primary Contact"
                 icon={<User className="size-4" />}
-                value={`${shelter.contact}, Director`}
+                value={shelter.email ?? shelter.phone ?? '—'}
               />
               <div className="flex flex-col gap-1">
                 <span className="text-label-sm text-on-surface-variant">
@@ -161,7 +161,7 @@ function ShelterReviewPage() {
               <div className="text-center">
                 <MapPin className="size-8 text-outline mx-auto mb-2" />
                 <p className="text-label-sm text-on-surface-variant">
-                  Map View of {shelter.location}
+                  Map View of {shelter.city}, {shelter.region}
                 </p>
               </div>
             </div>
@@ -169,10 +169,10 @@ function ShelterReviewPage() {
               <MapPin className="size-5 text-on-surface-variant mt-0.5" />
               <div>
                 <p className="text-body-md text-on-surface font-medium">
-                  1234 Rescue Road
+                  {shelter.formattedAddress ?? `${shelter.city}, ${shelter.region}`}
                 </p>
                 <p className="text-body-sm text-on-surface-variant">
-                  {shelter.location}
+                  {shelter.city}, {shelter.region} {shelter.postalCode ?? ''}
                 </p>
               </div>
             </div>

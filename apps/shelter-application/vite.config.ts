@@ -13,8 +13,7 @@ const config = defineConfig({
     noExternal: [
       '@repo/ui',
       '@repo/auth',
-      '@repo/domain',
-      '@repo/mock-data',
+      '@repo/data-utils',
       '@repo/api-client',
     ],
   },

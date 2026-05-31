@@ -3,7 +3,6 @@ import {
   Categories,
   Hero,
   PetCardHome,
-  SuccessStory,
 } from '@repo/ui'
 import { useSession, SignInDialog } from '@repo/auth'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
@@ -18,7 +17,7 @@ export const Route = createFileRoute('/_public/')({
 })
 
 function HomePage() {
-  const { featured, categories, stories } = Route.useLoaderData()
+  const { featured, categories } = Route.useLoaderData()
   const navigate = useNavigate()
   const session = useSession()
   const { favorites, toggle } = useFavorites()
@@ -84,7 +83,6 @@ function HomePage() {
         </div>
       </section>
       <AdoptionProcess />
-      {stories[0] && <SuccessStory story={stories[0]} />}
       <SignInDialog open={signInOpen} onOpenChange={setSignInOpen} />
     </div>
   )
