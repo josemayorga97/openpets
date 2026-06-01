@@ -15,6 +15,7 @@ import {
 import type { AppEnv } from '../env'
 import { requireApplicantOwner, requireSession } from '../middleware/auth'
 import { zJson } from '../middleware/validate'
+import { pickSafe } from '../logger/logger'
 
 // Applicant-facing endpoints only. Shelter-side review/decision lives at
 // /me/applications/*.
@@ -26,6 +27,10 @@ export const applicationsRouter = new Hono<AppEnv>()
     const id = await createAdoptionApplication({
       ...c.req.valid('json'),
       applicantId: c.var.user!.id,
+    })
+    c.var.logger.info('application.created', {
+      ...pickSafe(c.var.user),
+      applicationId: id,
     })
     return c.json({ id })
   })
@@ -45,6 +50,11 @@ export const applicationsRouter = new Hono<AppEnv>()
       const formId = await createAdoptionForm({
         ...c.req.valid('json'),
         applicationId: c.var.application!.id,
+      })
+      c.var.logger.info('form.created', {
+        ...pickSafe(c.var.user),
+        applicationId: c.var.application!.id,
+        formId,
       })
       return c.json({ id: formId })
     },
@@ -66,5 +76,9 @@ export const applicationsRouter = new Hono<AppEnv>()
       return c.json({ error: 'forbidden' }, 403)
     }
     await markAttachmentUploaded(attachmentId)
+    c.var.logger.info('attachment.uploaded', {
+      ...pickSafe(c.var.user),
+      attachmentId,
+    })
     return c.json({ ok: true })
   })

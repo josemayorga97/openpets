@@ -35,6 +35,7 @@ import type { AppEnv, PetRow } from '../env'
 import { requireRole, requireSession } from '../middleware/auth'
 import { zJson, zQuery } from '../middleware/validate'
 import { groupPhotoKeys, toPublicPet } from '../lib/to-public-pet'
+import { pickSafe } from '../logger/logger'
 
 async function composePets(rows: PetRow[], assetBase: string) {
   if (rows.length === 0) return []
@@ -72,6 +73,10 @@ export const adminRouter = new Hono<AppEnv>()
       const row = await getShelter(id)
       if (!row) return c.json({ error: 'not_found' }, 404)
       await updateShelter(id, c.req.valid('json'))
+      c.var.logger.info('shelter.updated', {
+        ...pickSafe(c.var.user),
+        shelterId: id,
+      })
       return c.json({ ok: true })
     },
   )
@@ -91,8 +96,17 @@ export const adminRouter = new Hono<AppEnv>()
       const row = await getShelter(id)
       if (!row) return c.json({ error: 'not_found' }, 404)
 
+      const audit = (to: string) =>
+        c.var.logger.info('shelter.status_changed', {
+          ...pickSafe(c.var.user),
+          shelterId: id,
+          from: row.status,
+          to,
+        })
+
       if (status === 'suspended') {
         await setShelterStatus(id, 'suspended')
+        audit('suspended')
         return c.json({ ok: true })
       }
 
@@ -103,11 +117,13 @@ export const adminRouter = new Hono<AppEnv>()
           const code = result.reason === 'not_found' ? 404 : 409
           return c.json({ error: result.reason }, code)
         }
+        audit('active')
         return c.json({ ok: true })
       }
 
       if (row.status === 'suspended') {
         await setShelterStatus(id, 'active')
+        audit('active')
         return c.json({ ok: true })
       }
 
@@ -133,11 +149,15 @@ export const adminRouter = new Hono<AppEnv>()
     },
   )
   .patch('/pets/:id', zJson(updatePetSchema), async (c) => {
-    await updatePet(c.req.param('id'), c.req.valid('json'))
+    const petId = c.req.param('id')
+    await updatePet(petId, c.req.valid('json'))
+    c.var.logger.info('pet.updated', { ...pickSafe(c.var.user), petId })
     return c.json({ ok: true })
   })
   .delete('/pets/:id', async (c) => {
-    await deletePet(c.req.param('id'))
+    const petId = c.req.param('id')
+    await deletePet(petId)
+    c.var.logger.info('pet.deleted', { ...pickSafe(c.var.user), petId })
     return c.json({ ok: true })
   })
 
@@ -162,7 +182,14 @@ export const adminRouter = new Hono<AppEnv>()
     '/applications/:id/status',
     zJson(z.object({ status: applicationStatusEnum })),
     async (c) => {
-      await updateApplicationStatus(c.req.param('id'), c.req.valid('json').status)
+      const applicationId = c.req.param('id')
+      const { status } = c.req.valid('json')
+      await updateApplicationStatus(applicationId, status)
+      c.var.logger.info('application.status_changed', {
+        ...pickSafe(c.var.user),
+        applicationId,
+        status,
+      })
       return c.json({ ok: true })
     },
   )
@@ -170,16 +197,24 @@ export const adminRouter = new Hono<AppEnv>()
   // ---- Sponsorship contributions -----------------------------------------
   .post('/sponsorships/contributions', zJson(createContributionSchema), async (c) => {
     const id = await recordContribution(c.req.valid('json'))
+    c.var.logger.info('contribution.recorded', {
+      ...pickSafe(c.var.user),
+      contributionId: id,
+    })
     return c.json({ id })
   })
   .patch(
     '/sponsorships/contributions/:contributionId/status',
     zJson(z.object({ status: contributionStatusEnum })),
     async (c) => {
-      await updateContributionStatus(
-        c.req.param('contributionId'),
-        c.req.valid('json').status,
-      )
+      const contributionId = c.req.param('contributionId')
+      const { status } = c.req.valid('json')
+      await updateContributionStatus(contributionId, status)
+      c.var.logger.info('contribution.status_changed', {
+        ...pickSafe(c.var.user),
+        contributionId,
+        status,
+      })
       return c.json({ ok: true })
     },
   )
