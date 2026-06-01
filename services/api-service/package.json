@@ -15,7 +15,8 @@
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
 		"test": "vitest",
-		"cf-typegen": "wrangler types --env-interface BaseEnv --env stage"
+		"cf-typegen": "wrangler types --env-interface BaseEnv --env stage",
+		"reauth": "pnpm -w run reauth"
 	},
 	"devDependencies": {
 		"@cloudflare/puppeteer": "^1.0.5",

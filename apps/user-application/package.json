@@ -17,7 +17,8 @@
 		"lint": "biome lint",
 		"check": "biome check",
 		"deploy": "pnpm run build && wrangler deploy",
-		"cf-typegen": "wrangler types --env stage"
+		"cf-typegen": "wrangler types --env stage",
+		"reauth": "pnpm -w run reauth"
 	},
 	"dependencies": {
 		"@cloudflare/vite-plugin": "^1.26.0",

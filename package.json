@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "clean": "find . -type d \\( -name node_modules -o -name dist -o -name .tanstack -o -name .wrangler -o -name .output -o -name .vinxi \\) -prune -exec rm -rf {} + && find . -type f -name '*.tsbuildinfo' -delete",
+    "reauth": "npx wrangler logout && npx wrangler login",
+    "build": "pnpm -r run build && pnpm --filter \"./apps/*\" run build:stage",
     "dev:admin-application": "pnpm --filter admin-application run dev",
     "dev:shelter-application": "pnpm --filter shelter-application run dev",
     "dev:user-application": "pnpm --filter user-application run dev",
