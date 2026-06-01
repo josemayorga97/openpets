@@ -10,7 +10,7 @@ import { cloudflare } from '@cloudflare/vite-plugin'
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
   ssr: {
-    noExternal: ['@repo/ui', '@repo/auth', '@repo/api-client', '@repo/data-utils'],
+    noExternal: ['@repo/ui', '@repo/auth', '@repo/api-client', '@repo/data-utils', 'better-auth'],
   },
   plugins: [
     devtools(),

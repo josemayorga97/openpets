@@ -19,7 +19,9 @@ import { Route as ShelterDashboardRouteImport } from './routes/_shelter/dashboar
 import { Route as PublicApplyRouteImport } from './routes/_public/apply'
 import { Route as ShelterListingsIndexRouteImport } from './routes/_shelter/listings.index'
 import { Route as ShelterAdoptionsIndexRouteImport } from './routes/_shelter/adoptions.index'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ShelterListingsNewRouteImport } from './routes/_shelter/listings.new'
+import { Route as ShelterListingsIdRouteImport } from './routes/_shelter/listings.$id'
 import { Route as ShelterAdoptionsIdRouteImport } from './routes/_shelter/adoptions.$id'
 import { Route as PublicApplySuccessRouteImport } from './routes/_public/apply/success'
 import { Route as PublicApplyMoreDetailsRouteImport } from './routes/_public/apply/more-details'
@@ -76,9 +78,19 @@ const ShelterAdoptionsIndexRoute = ShelterAdoptionsIndexRouteImport.update({
   path: '/adoptions/',
   getParentRoute: () => ShelterRoute,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShelterListingsNewRoute = ShelterListingsNewRouteImport.update({
   id: '/listings/new',
   path: '/listings/new',
+  getParentRoute: () => ShelterRoute,
+} as any)
+const ShelterListingsIdRoute = ShelterListingsIdRouteImport.update({
+  id: '/listings/$id',
+  path: '/listings/$id',
   getParentRoute: () => ShelterRoute,
 } as any)
 const ShelterAdoptionsIdRoute = ShelterAdoptionsIdRouteImport.update({
@@ -133,7 +145,9 @@ export interface FileRoutesByFullPath {
   '/apply/more-details': typeof PublicApplyMoreDetailsRoute
   '/apply/success': typeof PublicApplySuccessRoute
   '/adoptions/$id': typeof ShelterAdoptionsIdRoute
+  '/listings/$id': typeof ShelterListingsIdRoute
   '/listings/new': typeof ShelterListingsNewRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/adoptions/': typeof ShelterAdoptionsIndexRoute
   '/listings/': typeof ShelterListingsIndexRoute
 }
@@ -151,7 +165,9 @@ export interface FileRoutesByTo {
   '/apply/more-details': typeof PublicApplyMoreDetailsRoute
   '/apply/success': typeof PublicApplySuccessRoute
   '/adoptions/$id': typeof ShelterAdoptionsIdRoute
+  '/listings/$id': typeof ShelterListingsIdRoute
   '/listings/new': typeof ShelterListingsNewRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/adoptions': typeof ShelterAdoptionsIndexRoute
   '/listings': typeof ShelterListingsIndexRoute
 }
@@ -172,7 +188,9 @@ export interface FileRoutesById {
   '/_public/apply/more-details': typeof PublicApplyMoreDetailsRoute
   '/_public/apply/success': typeof PublicApplySuccessRoute
   '/_shelter/adoptions/$id': typeof ShelterAdoptionsIdRoute
+  '/_shelter/listings/$id': typeof ShelterListingsIdRoute
   '/_shelter/listings/new': typeof ShelterListingsNewRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/_shelter/adoptions/': typeof ShelterAdoptionsIndexRoute
   '/_shelter/listings/': typeof ShelterListingsIndexRoute
 }
@@ -192,7 +210,9 @@ export interface FileRouteTypes {
     | '/apply/more-details'
     | '/apply/success'
     | '/adoptions/$id'
+    | '/listings/$id'
     | '/listings/new'
+    | '/api/auth/$'
     | '/adoptions/'
     | '/listings/'
   fileRoutesByTo: FileRoutesByTo
@@ -210,7 +230,9 @@ export interface FileRouteTypes {
     | '/apply/more-details'
     | '/apply/success'
     | '/adoptions/$id'
+    | '/listings/$id'
     | '/listings/new'
+    | '/api/auth/$'
     | '/adoptions'
     | '/listings'
   id:
@@ -230,7 +252,9 @@ export interface FileRouteTypes {
     | '/_public/apply/more-details'
     | '/_public/apply/success'
     | '/_shelter/adoptions/$id'
+    | '/_shelter/listings/$id'
     | '/_shelter/listings/new'
+    | '/api/auth/$'
     | '/_shelter/adoptions/'
     | '/_shelter/listings/'
   fileRoutesById: FileRoutesById
@@ -238,6 +262,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   PublicRoute: typeof PublicRouteWithChildren
   ShelterRoute: typeof ShelterRouteWithChildren
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -312,11 +337,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShelterAdoptionsIndexRouteImport
       parentRoute: typeof ShelterRoute
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_shelter/listings/new': {
       id: '/_shelter/listings/new'
       path: '/listings/new'
       fullPath: '/listings/new'
       preLoaderRoute: typeof ShelterListingsNewRouteImport
+      parentRoute: typeof ShelterRoute
+    }
+    '/_shelter/listings/$id': {
+      id: '/_shelter/listings/$id'
+      path: '/listings/$id'
+      fullPath: '/listings/$id'
+      preLoaderRoute: typeof ShelterListingsIdRouteImport
       parentRoute: typeof ShelterRoute
     }
     '/_shelter/adoptions/$id': {
@@ -412,6 +451,7 @@ interface ShelterRouteChildren {
   ShelterSettingsRoute: typeof ShelterSettingsRoute
   ShelterTemplatesRoute: typeof ShelterTemplatesRoute
   ShelterAdoptionsIdRoute: typeof ShelterAdoptionsIdRoute
+  ShelterListingsIdRoute: typeof ShelterListingsIdRoute
   ShelterListingsNewRoute: typeof ShelterListingsNewRoute
   ShelterAdoptionsIndexRoute: typeof ShelterAdoptionsIndexRoute
   ShelterListingsIndexRoute: typeof ShelterListingsIndexRoute
@@ -423,6 +463,7 @@ const ShelterRouteChildren: ShelterRouteChildren = {
   ShelterSettingsRoute: ShelterSettingsRoute,
   ShelterTemplatesRoute: ShelterTemplatesRoute,
   ShelterAdoptionsIdRoute: ShelterAdoptionsIdRoute,
+  ShelterListingsIdRoute: ShelterListingsIdRoute,
   ShelterListingsNewRoute: ShelterListingsNewRoute,
   ShelterAdoptionsIndexRoute: ShelterAdoptionsIndexRoute,
   ShelterListingsIndexRoute: ShelterListingsIndexRoute,
@@ -434,6 +475,7 @@ const ShelterRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   PublicRoute: PublicRouteWithChildren,
   ShelterRoute: ShelterRouteWithChildren,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

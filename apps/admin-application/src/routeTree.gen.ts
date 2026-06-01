@@ -9,13 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as AdminIndexRouteImport } from './routes/_admin.index'
 import { Route as AdminPetsRouteImport } from './routes/_admin.pets'
 import { Route as AdminSheltersIndexRouteImport } from './routes/_admin.shelters.index'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AdminSheltersIdStatusRouteImport } from './routes/_admin.shelters.$id.status'
 import { Route as AdminSheltersIdReviewRouteImport } from './routes/_admin.shelters.$id.review'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/_admin',
   getParentRoute: () => rootRouteImport,
@@ -35,6 +42,11 @@ const AdminSheltersIndexRoute = AdminSheltersIndexRouteImport.update({
   path: '/shelters/',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminSheltersIdStatusRoute = AdminSheltersIdStatusRouteImport.update({
   id: '/shelters/$id/status',
   path: '/shelters/$id/status',
@@ -48,14 +60,18 @@ const AdminSheltersIdReviewRoute = AdminSheltersIdReviewRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AdminIndexRoute
+  '/login': typeof LoginRoute
   '/pets': typeof AdminPetsRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/shelters/': typeof AdminSheltersIndexRoute
   '/shelters/$id/review': typeof AdminSheltersIdReviewRoute
   '/shelters/$id/status': typeof AdminSheltersIdStatusRoute
 }
 export interface FileRoutesByTo {
+  '/login': typeof LoginRoute
   '/pets': typeof AdminPetsRoute
   '/': typeof AdminIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/shelters': typeof AdminSheltersIndexRoute
   '/shelters/$id/review': typeof AdminSheltersIdReviewRoute
   '/shelters/$id/status': typeof AdminSheltersIdStatusRoute
@@ -63,8 +79,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_admin': typeof AdminRouteWithChildren
+  '/login': typeof LoginRoute
   '/_admin/pets': typeof AdminPetsRoute
   '/_admin/': typeof AdminIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/_admin/shelters/': typeof AdminSheltersIndexRoute
   '/_admin/shelters/$id/review': typeof AdminSheltersIdReviewRoute
   '/_admin/shelters/$id/status': typeof AdminSheltersIdStatusRoute
@@ -73,22 +91,28 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
     | '/pets'
+    | '/api/auth/$'
     | '/shelters/'
     | '/shelters/$id/review'
     | '/shelters/$id/status'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/login'
     | '/pets'
     | '/'
+    | '/api/auth/$'
     | '/shelters'
     | '/shelters/$id/review'
     | '/shelters/$id/status'
   id:
     | '__root__'
     | '/_admin'
+    | '/login'
     | '/_admin/pets'
     | '/_admin/'
+    | '/api/auth/$'
     | '/_admin/shelters/'
     | '/_admin/shelters/$id/review'
     | '/_admin/shelters/$id/status'
@@ -96,10 +120,19 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_admin': {
       id: '/_admin'
       path: ''
@@ -127,6 +160,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/shelters/'
       preLoaderRoute: typeof AdminSheltersIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_admin/shelters/$id/status': {
       id: '/_admin/shelters/$id/status'
@@ -165,6 +205,8 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
+  LoginRoute: LoginRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -3,10 +3,12 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./proxy": "./src/proxy.ts"
   },
   "dependencies": {
-    "@repo/ui": "workspace:^"
+    "@repo/ui": "workspace:^",
+    "better-auth": "1.6.11"
   },
   "peerDependencies": {
     "react": "^19"

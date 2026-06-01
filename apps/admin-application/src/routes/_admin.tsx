@@ -3,6 +3,7 @@ import {
   Link,
   Outlet,
   createFileRoute,
+  useNavigate,
   useRouterState,
 } from '@tanstack/react-router'
 import {
@@ -10,17 +11,72 @@ import {
   Building2,
   HelpCircle,
   LayoutDashboard,
+  LogOut,
   Menu,
   PawPrint,
   Search,
   Settings,
   X,
 } from 'lucide-react'
+import { authClient } from '@repo/auth'
 import { cn } from '@repo/ui'
+import { Button } from '@repo/ui/components/ui/button'
 
 export const Route = createFileRoute('/_admin')({
-  component: AdminLayout,
+  component: AdminGuard,
 })
+
+type AdminSession = NonNullable<
+  ReturnType<typeof authClient.useSession>['data']
+>
+
+function AdminGuard() {
+  const navigate = useNavigate()
+  const { data: session, isPending } = authClient.useSession()
+
+  React.useEffect(() => {
+    if (!isPending && !session) {
+      navigate({ to: '/login' })
+    }
+  }, [isPending, session, navigate])
+
+  if (isPending) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="size-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    )
+  }
+
+  if (!session) return null
+
+  if (session.user.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="w-full max-w-sm flex flex-col items-center gap-4 text-center">
+          <h1 className="font-display text-headline-md font-bold text-on-surface">
+            Access denied
+          </h1>
+          <p className="text-body-sm text-on-surface-variant">
+            Your account doesn’t have admin access. Sign in with an authorized
+            account.
+          </p>
+          <Button
+            variant="primary"
+            onClick={async () => {
+              await authClient.signOut()
+              navigate({ to: '/login' })
+            }}
+          >
+            Sign out
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  return <AdminLayout session={session} />
+}
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -28,7 +84,7 @@ const navItems = [
   { to: '/pets', label: 'Pets', icon: PawPrint, exact: false },
 ] as const
 
-function AdminLayout() {
+function AdminLayout({ session }: { session: AdminSession }) {
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
@@ -53,7 +109,7 @@ function AdminLayout() {
         onClose={() => setMobileOpen(false)}
       />
       <div className="md:ml-64 flex flex-col min-h-screen">
-        <TopNav onMenuClick={() => setMobileOpen(true)} />
+        <TopNav onMenuClick={() => setMobileOpen(true)} session={session} />
         <main className="flex-1 p-margin-mobile md:p-margin-desktop">
           <div className="max-w-[1280px] mx-auto w-full">
             <Outlet />
@@ -170,7 +226,23 @@ function NavLink({
   )
 }
 
-function TopNav({ onMenuClick }: { onMenuClick: () => void }) {
+function initials(name?: string | null): string {
+  if (!name) return 'AU'
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return 'AU'
+  const letters = parts.slice(0, 2).map((p) => p[0]!.toUpperCase())
+  return letters.join('')
+}
+
+function TopNav({
+  onMenuClick,
+  session,
+}: {
+  onMenuClick: () => void
+  session: AdminSession
+}) {
+  const navigate = useNavigate()
+  const { name, image } = session.user
   return (
     <header className="bg-surface/80 backdrop-blur-md sticky top-0 z-20 border-b border-border-light">
       <div className="flex items-center justify-between px-margin-mobile md:px-margin-desktop py-3 gap-3 md:gap-4">
@@ -199,25 +271,49 @@ function TopNav({ onMenuClick }: { onMenuClick: () => void }) {
           <IconButton>
             <HelpCircle className="size-5" />
           </IconButton>
-          <button className="hidden sm:block text-label-md text-primary px-4 py-2 rounded-lg hover:bg-surface-container-low transition-colors">
-            Support
-          </button>
-          <div
-            className="w-9 h-9 rounded-full bg-primary-container border-2 border-border-light flex items-center justify-center text-on-primary-container font-display font-bold text-sm"
-            aria-label="Profile"
+          <IconButton
+            onClick={async () => {
+              await authClient.signOut()
+              navigate({ to: '/login' })
+            }}
+            aria-label="Sign out"
           >
-            AU
-          </div>
+            <LogOut className="size-5" />
+          </IconButton>
+          {image ? (
+            <img
+              src={image}
+              alt={name ?? 'Profile'}
+              className="w-9 h-9 rounded-full border-2 border-border-light object-cover"
+            />
+          ) : (
+            <div
+              className="w-9 h-9 rounded-full bg-primary-container border-2 border-border-light flex items-center justify-center text-on-primary-container font-display font-bold text-sm"
+              aria-label={name ?? 'Profile'}
+            >
+              {initials(name)}
+            </div>
+          )}
         </div>
       </div>
     </header>
   )
 }
 
-function IconButton({ children }: { children: React.ReactNode }) {
+function IconButton({
+  children,
+  onClick,
+  'aria-label': ariaLabel,
+}: {
+  children: React.ReactNode
+  onClick?: () => void
+  'aria-label'?: string
+}) {
   return (
     <button
       type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
       className="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-low rounded-full transition-colors"
     >
       {children}

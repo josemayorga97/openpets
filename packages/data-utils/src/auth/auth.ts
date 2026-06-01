@@ -12,27 +12,31 @@ export type AuthEnv = {
   TRUSTED_ORIGINS: string
   GOOGLE_CLIENT_ID: string
   GOOGLE_CLIENT_SECRET: string
+  BETTER_AUTH_SECRET: string
 }
 
 export type Auth = ReturnType<typeof createAuth>
 
 let auth: Auth | undefined;
 
-
-
 export function createAuth(env: AuthEnv) {
   const db = getDb();
-
+  const clientId = env.GOOGLE_CLIENT_ID;
+  const clientSecret = env.GOOGLE_CLIENT_SECRET;
+  const trustedOrigins = env.TRUSTED_ORIGINS.split(',').map((o: string) => o.trim());
+  const secret = env.BETTER_AUTH_SECRET;
   return betterAuth({
+    secret,
     database: drizzleAdapter(db, {
       provider: 'sqlite',
       schema,
+      
     }),
-    trustedOrigins: env.TRUSTED_ORIGINS.split(',').map((o: string) => o.trim()),
+    trustedOrigins,
     socialProviders: {
       google: {
-        clientId: env.GOOGLE_CLIENT_ID,
-        clientSecret: env.GOOGLE_CLIENT_SECRET,
+        clientId,
+        clientSecret,
       },
     },
     emailAndPassword: {
@@ -46,6 +50,9 @@ export function createAuth(env: AuthEnv) {
         adminRoles: ['admin'],
       }),
     ],
+    advanced:{
+      ipAddress:  {ipAddressHeaders: ["cf-connecting-ip"] }
+    }
   })
 }
 

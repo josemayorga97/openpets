@@ -15,6 +15,7 @@ import { Route as PublicSearchRouteImport } from './routes/_public/search'
 import { Route as PublicResourcesRouteImport } from './routes/_public/resources'
 import { Route as PublicQuizRouteImport } from './routes/_public/quiz'
 import { Route as PublicAboutRouteImport } from './routes/_public/about'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as PublicPetsIdRouteImport } from './routes/_public/pets.$id'
 
 const PublicRoute = PublicRouteImport.update({
@@ -46,6 +47,11 @@ const PublicAboutRoute = PublicAboutRouteImport.update({
   path: '/about',
   getParentRoute: () => PublicRoute,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PublicPetsIdRoute = PublicPetsIdRouteImport.update({
   id: '/pets/$id',
   path: '/pets/$id',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/resources': typeof PublicResourcesRoute
   '/search': typeof PublicSearchRoute
   '/pets/$id': typeof PublicPetsIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/about': typeof PublicAboutRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/search': typeof PublicSearchRoute
   '/': typeof PublicIndexRoute
   '/pets/$id': typeof PublicPetsIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,12 +85,27 @@ export interface FileRoutesById {
   '/_public/search': typeof PublicSearchRoute
   '/_public/': typeof PublicIndexRoute
   '/_public/pets/$id': typeof PublicPetsIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/quiz' | '/resources' | '/search' | '/pets/$id'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/quiz'
+    | '/resources'
+    | '/search'
+    | '/pets/$id'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/about' | '/quiz' | '/resources' | '/search' | '/' | '/pets/$id'
+  to:
+    | '/about'
+    | '/quiz'
+    | '/resources'
+    | '/search'
+    | '/'
+    | '/pets/$id'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/_public'
@@ -92,10 +115,12 @@ export interface FileRouteTypes {
     | '/_public/search'
     | '/_public/'
     | '/_public/pets/$id'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   PublicRoute: typeof PublicRouteWithChildren
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -142,6 +167,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicAboutRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_public/pets/$id': {
       id: '/_public/pets/$id'
       path: '/pets/$id'
@@ -175,6 +207,7 @@ const PublicRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   PublicRoute: PublicRouteWithChildren,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
