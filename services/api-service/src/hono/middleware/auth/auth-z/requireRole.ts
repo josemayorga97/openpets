@@ -27,7 +27,11 @@ export function requireRole(role: Role) {
       return c.json({ error: 'forbidden' }, 403)
     }
 
-    if (!roleFromSession.match(role)) {
+    // better-auth stores roles as a comma-separated string. Match by exact
+    // token equality — never a substring/regex test (the previous `.match(role)`
+    // treated `role` as a regex, so e.g. 'user' would pass against 'superuser').
+    const roles = roleFromSession.split(',').map((r) => r.trim())
+    if (!roles.includes(role)) {
       logger.warn('authz.role_check', {
         ...base,
         outcome: 'denied',
