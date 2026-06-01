@@ -1,5 +1,4 @@
-export { useSession, signIn, signOut } from './use-session'
-export { sessionStore } from './store'
-export type { SessionUser, SessionState } from './store'
+export { useSession, signInWithGoogle, signOut } from './use-session'
+export type { SessionUser, SessionState } from './use-session'
 export { SignInDialog } from './sign-in-dialog'
 export { authClient } from './client'

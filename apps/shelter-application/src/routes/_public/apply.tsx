@@ -1,5 +1,4 @@
 import { Outlet, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { signIn } from '@repo/auth'
 import {
   ApplicationFormProvider,
   clearApplicationDraft,
@@ -13,13 +12,7 @@ function ApplyLayout() {
   const navigate = useNavigate()
   return (
     <ApplicationFormProvider
-      onSubmit={async (values) => {
-        signIn({
-          email: values.email,
-          name:
-            [values.firstName, values.lastName].filter(Boolean).join(' ') ||
-            values.email,
-        })
+      onSubmit={async () => {
         clearApplicationDraft()
         await navigate({ to: '/apply/success' })
       }}

@@ -1,5 +1,5 @@
-import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { signIn } from '@repo/auth'
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { signInWithGoogle } from '@repo/auth'
 import { Icon } from '../../components/icon'
 
 export const Route = createFileRoute('/_public/')({
@@ -7,13 +7,8 @@ export const Route = createFileRoute('/_public/')({
 })
 
 function JoinLandingPage() {
-  const navigate = useNavigate()
   const handleLogin = async () => {
-    await signIn({
-      email: 'shelter@openpets.org',
-      name: 'Shelter Admin',
-    })
-    void navigate({ to: '/dashboard' })
+    await signInWithGoogle('/dashboard')
   }
   return (
     <>

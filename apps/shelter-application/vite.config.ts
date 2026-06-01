@@ -15,6 +15,7 @@ const config = defineConfig({
       '@repo/auth',
       '@repo/data-utils',
       '@repo/api-client',
+      'better-auth',
     ],
   },
   plugins: [

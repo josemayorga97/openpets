@@ -7,9 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@repo/ui/components/ui/dialog'
-import { Input } from '@repo/ui/components/ui/input'
-import { Label } from '@repo/ui/components/ui/label'
-import { signIn } from './use-session'
+import { signInWithGoogle } from './use-session'
 
 export interface SignInDialogProps {
   open: boolean
@@ -17,8 +15,6 @@ export interface SignInDialogProps {
 }
 
 export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
-  const [email, setEmail] = React.useState('')
-  const [name, setName] = React.useState('')
   const [submitting, setSubmitting] = React.useState(false)
 
   return (
@@ -30,47 +26,18 @@ export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
             Sign in to save favorites and track your applications.
           </DialogDescription>
         </DialogHeader>
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault()
-            if (!email) return
+        <Button
+          type="button"
+          variant="primary"
+          disabled={submitting}
+          className="mt-2 w-full"
+          onClick={async () => {
             setSubmitting(true)
-            await signIn({ email, name: name || undefined })
-            setSubmitting(false)
-            onOpenChange(false)
-            setEmail('')
-            setName('')
+            await signInWithGoogle()
           }}
-          className="flex flex-col gap-4"
         >
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="signin-email">Email</Label>
-            <Input
-              id="signin-email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="signin-name">Name (optional)</Label>
-            <Input
-              id="signin-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
-            />
-          </div>
-          <Button type="submit" variant="primary" disabled={submitting} className="mt-2">
-            {submitting ? 'Signing in...' : 'Sign in'}
-          </Button>
-          <p className="text-xs text-on-surface-variant">
-            This is a mock sign-in for demo purposes — your details stay in your
-            browser.
-          </p>
-        </form>
+          {submitting ? 'Redirecting…' : 'Continue with Google'}
+        </Button>
       </DialogContent>
     </Dialog>
   )

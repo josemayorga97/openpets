@@ -2,22 +2,14 @@ import * as React from 'react'
 import {
   Outlet,
   createFileRoute,
-  redirect,
   useNavigate,
   useRouterState,
 } from '@tanstack/react-router'
-import { sessionStore, useSession } from '@repo/auth'
+import { useSession } from '@repo/auth'
 import { MobileSidebar, Sidebar } from '../components/sidebar'
 import { TopBar } from '../components/topbar'
 
 export const Route = createFileRoute('/_shelter')({
-  beforeLoad: () => {
-    if (typeof window === 'undefined') return
-    const session = sessionStore.getSnapshot()
-    if (session.status !== 'authed') {
-      throw redirect({ to: '/' })
-    }
-  },
   component: ShelterLayout,
 })
 
@@ -36,6 +28,14 @@ function ShelterLayout() {
       void navigate({ to: '/' })
     }
   }, [session.status, navigate])
+
+  if (session.status === 'loading') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="size-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    )
+  }
   if (session.status !== 'authed') {
     return null
   }
