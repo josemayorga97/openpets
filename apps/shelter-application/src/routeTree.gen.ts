@@ -21,7 +21,6 @@ import { Route as ShelterListingsIndexRouteImport } from './routes/_shelter/list
 import { Route as ShelterAdoptionsIndexRouteImport } from './routes/_shelter/adoptions.index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ShelterListingsNewRouteImport } from './routes/_shelter/listings.new'
-import { Route as ShelterListingsIdRouteImport } from './routes/_shelter/listings.$id'
 import { Route as ShelterAdoptionsIdRouteImport } from './routes/_shelter/adoptions.$id'
 import { Route as PublicApplySuccessRouteImport } from './routes/_public/apply/success'
 import { Route as PublicApplyMoreDetailsRouteImport } from './routes/_public/apply/more-details'
@@ -88,11 +87,6 @@ const ShelterListingsNewRoute = ShelterListingsNewRouteImport.update({
   path: '/listings/new',
   getParentRoute: () => ShelterRoute,
 } as any)
-const ShelterListingsIdRoute = ShelterListingsIdRouteImport.update({
-  id: '/listings/$id',
-  path: '/listings/$id',
-  getParentRoute: () => ShelterRoute,
-} as any)
 const ShelterAdoptionsIdRoute = ShelterAdoptionsIdRouteImport.update({
   id: '/adoptions/$id',
   path: '/adoptions/$id',
@@ -145,7 +139,6 @@ export interface FileRoutesByFullPath {
   '/apply/more-details': typeof PublicApplyMoreDetailsRoute
   '/apply/success': typeof PublicApplySuccessRoute
   '/adoptions/$id': typeof ShelterAdoptionsIdRoute
-  '/listings/$id': typeof ShelterListingsIdRoute
   '/listings/new': typeof ShelterListingsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/adoptions/': typeof ShelterAdoptionsIndexRoute
@@ -165,7 +158,6 @@ export interface FileRoutesByTo {
   '/apply/more-details': typeof PublicApplyMoreDetailsRoute
   '/apply/success': typeof PublicApplySuccessRoute
   '/adoptions/$id': typeof ShelterAdoptionsIdRoute
-  '/listings/$id': typeof ShelterListingsIdRoute
   '/listings/new': typeof ShelterListingsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/adoptions': typeof ShelterAdoptionsIndexRoute
@@ -188,7 +180,6 @@ export interface FileRoutesById {
   '/_public/apply/more-details': typeof PublicApplyMoreDetailsRoute
   '/_public/apply/success': typeof PublicApplySuccessRoute
   '/_shelter/adoptions/$id': typeof ShelterAdoptionsIdRoute
-  '/_shelter/listings/$id': typeof ShelterListingsIdRoute
   '/_shelter/listings/new': typeof ShelterListingsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_shelter/adoptions/': typeof ShelterAdoptionsIndexRoute
@@ -210,7 +201,6 @@ export interface FileRouteTypes {
     | '/apply/more-details'
     | '/apply/success'
     | '/adoptions/$id'
-    | '/listings/$id'
     | '/listings/new'
     | '/api/auth/$'
     | '/adoptions/'
@@ -230,7 +220,6 @@ export interface FileRouteTypes {
     | '/apply/more-details'
     | '/apply/success'
     | '/adoptions/$id'
-    | '/listings/$id'
     | '/listings/new'
     | '/api/auth/$'
     | '/adoptions'
@@ -252,7 +241,6 @@ export interface FileRouteTypes {
     | '/_public/apply/more-details'
     | '/_public/apply/success'
     | '/_shelter/adoptions/$id'
-    | '/_shelter/listings/$id'
     | '/_shelter/listings/new'
     | '/api/auth/$'
     | '/_shelter/adoptions/'
@@ -351,13 +339,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShelterListingsNewRouteImport
       parentRoute: typeof ShelterRoute
     }
-    '/_shelter/listings/$id': {
-      id: '/_shelter/listings/$id'
-      path: '/listings/$id'
-      fullPath: '/listings/$id'
-      preLoaderRoute: typeof ShelterListingsIdRouteImport
-      parentRoute: typeof ShelterRoute
-    }
     '/_shelter/adoptions/$id': {
       id: '/_shelter/adoptions/$id'
       path: '/adoptions/$id'
@@ -451,7 +432,6 @@ interface ShelterRouteChildren {
   ShelterSettingsRoute: typeof ShelterSettingsRoute
   ShelterTemplatesRoute: typeof ShelterTemplatesRoute
   ShelterAdoptionsIdRoute: typeof ShelterAdoptionsIdRoute
-  ShelterListingsIdRoute: typeof ShelterListingsIdRoute
   ShelterListingsNewRoute: typeof ShelterListingsNewRoute
   ShelterAdoptionsIndexRoute: typeof ShelterAdoptionsIndexRoute
   ShelterListingsIndexRoute: typeof ShelterListingsIndexRoute
@@ -463,7 +443,6 @@ const ShelterRouteChildren: ShelterRouteChildren = {
   ShelterSettingsRoute: ShelterSettingsRoute,
   ShelterTemplatesRoute: ShelterTemplatesRoute,
   ShelterAdoptionsIdRoute: ShelterAdoptionsIdRoute,
-  ShelterListingsIdRoute: ShelterListingsIdRoute,
   ShelterListingsNewRoute: ShelterListingsNewRoute,
   ShelterAdoptionsIndexRoute: ShelterAdoptionsIndexRoute,
   ShelterListingsIndexRoute: ShelterListingsIndexRoute,
