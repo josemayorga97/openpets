@@ -19,7 +19,7 @@ export const requireShelterOwner = createMiddleware<AppEnv>(async (c, next) => {
       outcome: 'denied',
       reason: 'missing_param',
     })
-    return c.json({ error: 'bad_request' }, 400)
+    return c.json({ error: 'forbidden' }, 403)
   }
 
   const userId = c.var.user?.id
@@ -39,7 +39,7 @@ export const requireShelterOwner = createMiddleware<AppEnv>(async (c, next) => {
       outcome: 'denied',
       reason: 'not_found',
     })
-    return c.json({ error: 'not_found' }, 404)
+    return c.json({ error: 'forbidden' }, 403)
   }
 
   if (row.applicantUserId !== userId) {

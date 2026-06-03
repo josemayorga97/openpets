@@ -28,7 +28,7 @@ export const requireMyShelter = createMiddleware<AppEnv>(async (c, next) => {
       outcome: 'denied',
       reason: 'not_found',
     })
-    return c.json({ error: 'not_found' }, 404)
+    return c.json({ error: 'forbidden' }, 403)
   }
 
   c.set('shelter', { id: row.shelterId, status: row.shelterStatus })
